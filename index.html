@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EDEB">
+<title>Atelier vélos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --paper:#E9EDEB; --surface:#fff; --ink:#16211D; --soft:#61716B; --line:#CFD9D4;
+    --done:#1F6F4A; --open:#C0851F; --open-soft:#F0E1C2; --loss:#A33B2A;
+    --pad:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:"Instrument Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Instrument Serif",Georgia,serif}
+  .num{font-variant-numeric:tabular-nums}
+  h1{font-size:22px;font-weight:400;margin:0}
+  h2{font-size:14px;font-weight:500;color:var(--soft);margin:0 0 10px}
+  a{color:var(--done)}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--done);outline-offset:3px}
+  [hidden]{display:none!important}
+
+  .wrap{max-width:900px;margin:0 auto;padding:16px var(--pad) 104px}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:6px 0 18px}
+  .sync{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .dot.on{background:var(--done)} .dot.busy{background:var(--open)} .dot.off{background:var(--loss)}
+
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(3,1fr);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{background:none;border:none;padding:13px 4px 15px;color:var(--soft);font-size:13px}
+  nav.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 2px 0 var(--done)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:18px;margin-bottom:12px}
+  .muted{color:var(--soft);font-size:14px}
+  .btn{background:var(--ink);color:#fff;border:none;border-radius:4px;padding:11px 18px;font-size:15px}
+  .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+  .btn.go{background:var(--done)}
+  .btn:disabled{opacity:.45}
+  input[type=text],input[type=password]{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);
+    border-radius:4px;background:var(--surface);color:var(--ink)}
+  label.f{display:block;font-size:13px;color:var(--soft);margin:14px 0 5px}
+  ol.steps{padding-left:20px;margin:0}
+  ol.steps li{margin-bottom:10px;font-size:15px}
+  code{background:var(--paper);padding:1px 5px;border-radius:3px;font-size:14px}
+
+  /* ---- dictee ---- */
+  .mic-zone{text-align:center;padding:20px 0 6px}
+  .mic{width:124px;height:124px;border-radius:50%;border:none;background:var(--done);color:#fff;
+    font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;
+    box-shadow:0 2px 0 #145236}
+  .mic svg{width:34px;height:34px;fill:currentColor}
+  .mic[data-on="1"]{background:var(--loss);box-shadow:0 2px 0 #7d2a1d}
+  @media (prefers-reduced-motion:no-preference){
+    .mic[data-on="1"]{animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{50%{box-shadow:0 2px 0 #7d2a1d,0 0 0 14px rgba(163,59,42,.12)}}
+  }
+  .heard{min-height:26px;margin:18px 0 6px;font-size:19px;line-height:1.35}
+  .heard.ph{color:var(--soft);font-size:15px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .confirm{border-left:3px solid var(--done);background:#F4F9F6}
+  .confirm.warn{border-left-color:var(--open);background:#FFFBF2}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .kv:last-of-type{border-bottom:none}
+  .kv span:first-child{color:var(--soft)}
+  .log{font-size:14px}
+  .log li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+  .log li:last-child{border:none}
+  details.help summary{cursor:pointer;font-size:14px;color:var(--soft);padding:4px 0}
+  details.help ul{padding-left:18px;margin:8px 0 0}
+  details.help li{font-size:14px;margin-bottom:6px}
+  details.help b{font-weight:500}
+
+  /* ---- jauge ---- */
+  .big{font-size:clamp(46px,13vw,74px);line-height:.95;letter-spacing:-.02em}
+  .gauge-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .goal{text-align:right;font-size:14px;color:var(--soft)}
+  .battery{margin-top:20px;display:flex;gap:5px}
+  .cells{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:3px;background:var(--paper);
+    border:1px solid var(--line);border-radius:3px;padding:3px;height:42px}
+  .cell{background:#fff;border-radius:1px;position:relative;overflow:hidden}
+  .cell i{position:absolute;inset:0 auto 0 0}
+  .cell i.d{background:var(--done)}
+  .cell i.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-soft) 3px 7px)}
+  .nub{width:6px;align-self:center;height:18px;background:var(--line);border-radius:0 2px 2px 0}
+  .legend{display:flex;gap:18px;margin-top:12px;font-size:13px;color:var(--soft);flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .chip{width:10px;height:10px;border-radius:2px}
+  .chip.d{background:var(--done)}
+  .chip.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-soft) 3px 7px)}
+  .verdict{margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:17px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:5px;overflow:hidden;margin-bottom:12px}
+  .stat{background:var(--surface);padding:13px 15px}
+  .stat dt{font-size:13px;color:var(--soft)}
+  .stat dd{margin:2px 0 0;font-size:23px}
+  .lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+  .lane{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:12px 14px}
+  .lane h3{margin:0;font-size:13px;font-weight:500;color:var(--soft)}
+  .lane .n{font-size:27px}
+  .lane .m{font-size:13px;color:var(--soft)}
+  .lane.sale{border-color:var(--open);background:#FFFCF5}
+  .lane.sold{border-color:var(--done);background:#F5FAF7}
+  table{width:100%;border-collapse:collapse;background:var(--surface);font-size:14px}
+  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;white-space:normal}
+  th{font-size:12px;font-weight:500;color:var(--soft);background:var(--paper)}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:5px}
+  td.pos{color:var(--done)} td.neg{color:var(--loss)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;background:var(--ink);color:#fff;
+    padding:11px 17px;border-radius:5px;font-size:14px;z-index:40;max-width:92vw;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="serif">Atelier vélos</h1>
+    <p class="sync" id="sync"><i class="dot"></i><span>hors ligne</span></p>
+  </header>
+
+  <!-- ============ RÉGLAGES / CONNEXION ============ -->
+  <section id="v-setup" hidden>
+    <div class="card" id="setupIntro">
+      <h2>Connecter ton Dropbox</h2>
+      <p class="muted">À faire une seule fois. Tes identifiants restent chez Dropbox : cette page ne reçoit qu’un jeton d’accès limité à un seul dossier.</p>
+      <ol class="steps">
+        <li>Ouvre <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">dropbox.com/developers/apps</a> et clique <b>Create app</b>.</li>
+        <li>Choisis <b>Scoped access</b>, puis <b>App folder</b>, et nomme-la <code>Atelier velos</code>.</li>
+        <li>Onglet <b>Permissions</b> : coche <code>files.content.read</code> et <code>files.content.write</code>, puis <b>Submit</b>.</li>
+        <li>Onglet <b>Settings</b> : copie la valeur <b>App key</b> et colle-la ci-dessous.</li>
+        <li>Dépose ton fichier Excel dans <code>Dropbox / Applications / Atelier velos /</code>.</li>
+      </ol>
+      <label class="f" for="appkey">App key</label>
+      <input type="text" id="appkey" autocomplete="off" spellcheck="false" placeholder="ex. a1b2c3d4e5f6g7h">
+      <label class="f" for="fpath">Nom du fichier dans ce dossier</label>
+      <input type="text" id="fpath" value="/Suivi_velos_electriques.xlsx" spellcheck="false">
+      <div class="row" style="margin-top:16px">
+        <button class="btn go" id="btnAuth">Autoriser l’accès</button>
+      </div>
+    </div>
+
+    <div class="card" id="setupCode" hidden>
+      <h2>Coller le code d’autorisation</h2>
+      <p class="muted">Dropbox vient d’afficher un code dans l’autre onglet. Copie-le ici.</p>
+      <label class="f" for="authcode">Code</label>
+      <input type="text" id="authcode" autocomplete="off" spellcheck="false">
+      <div class="row" style="margin-top:16px">
+        <button class="btn go" id="btnCode">Terminer la connexion</button>
+        <button class="btn ghost" id="btnCancelCode">Annuler</button>
+      </div>
+    </div>
+
+    <div class="card" id="setupOk" hidden>
+      <h2>Connexion active</h2>
+      <p class="muted" id="okPath"></p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost" id="btnReload">Recharger le fichier</button>
+        <button class="btn ghost" id="btnLogout">Déconnecter</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Sans Dropbox</h2>
+      <p class="muted">Tu peux aussi ouvrir un fichier depuis cet appareil. En lecture seule : la dictée a besoin de Dropbox pour réécrire le fichier.</p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost" id="btnLocal">Ouvrir un fichier</button>
+        <input type="file" id="localFile" accept=".xlsx,.xlsm" hidden>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DICTÉE ============ -->
+  <section id="v-voice" hidden>
+    <div class="card">
+      <div class="mic-zone">
+        <button class="mic" id="mic" data-on="0">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12Z"/></svg>
+          <span id="micLabel">Dicter</span>
+        </button>
+        <p class="heard ph" id="heard">Appuie, parle, relâche quand tu as fini.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" id="btnType">Écrire au clavier</button>
+        </div>
+        <div id="typeBox" hidden style="margin-top:12px">
+          <input type="text" id="typed" placeholder="nouveau vélo VanMoof S3 acheté 90 euros">
+          <div class="row" style="margin-top:10px;justify-content:center">
+            <button class="btn" id="btnTypeGo">Analyser</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card confirm" id="confirm" hidden>
+      <h2 id="confirmTitle"></h2>
+      <div id="confirmBody"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn go" id="btnSave">Enregistrer</button>
+        <button class="btn ghost" id="btnDrop">Annuler</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Dernières saisies</h2>
+      <ul class="log" id="log" style="list-style:none;padding:0;margin:0"><li class="muted">Rien encore.</li></ul>
+    </div>
+
+    <details class="help card">
+      <summary>Les phrases que je comprends</summary>
+      <ul>
+        <li><b>nouveau vélo</b> VanMoof S3 <b>acheté</b> 90 euros</li>
+        <li><b>pièce pour</b> V2 batterie 180 euros — ou : pièce pour le VanMoof, 2 chambres à air à 12 euros</li>
+        <li>V2 <b>en réparation</b></li>
+        <li>V2 <b>en vente à</b> 560 euros</li>
+        <li>V2 <b>vendu</b> 495 euros</li>
+      </ul>
+      <p class="muted" style="margin-bottom:0">Tu peux désigner un vélo par son numéro (V2, vélo 2) ou par son nom (le VanMoof). Les dates sont celles du jour. Rien n’est écrit sans ta confirmation.</p>
+    </details>
+  </section>
+
+  <!-- ============ TABLEAU DE BORD ============ -->
+  <section id="v-board" hidden>
+    <div class="card">
+      <div class="gauge-head">
+        <div>
+          <div class="big serif num" id="margeNow">0 €</div>
+          <div class="muted" style="margin-top:4px">de marge encaissée en <span id="monthLabel"></span></div>
+        </div>
+        <div class="goal">objectif <b class="num" id="goalTxt">1 000 €</b><br><span class="num" id="pctTxt">0 %</span> atteint</div>
+      </div>
+      <div class="battery"><div class="cells" id="cells"></div><div class="nub"></div></div>
+      <div class="legend"><span><i class="chip d"></i>encaissé</span><span><i class="chip o"></i>en vente, au prix annoncé</span></div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+    <dl class="stats" id="stats"></dl>
+    <h2>Où en sont les vélos</h2>
+    <div class="lanes" id="lanes"></div>
+    <h2>En vente</h2>
+    <div id="openTable" style="margin-bottom:22px"></div>
+    <h2>Vendus ce mois</h2>
+    <div id="soldTable"></div>
+  </section>
+
+  <p class="muted" id="emptyState" hidden style="margin-top:40px;text-align:center">Aucune donnée chargée. Va dans Réglages pour connecter Dropbox.</p>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-view="voice" aria-selected="true">Dicter</button>
+  <button role="tab" data-view="board" aria-selected="false">Tableau de bord</button>
+  <button role="tab" data-view="setup" aria-selected="false">Réglages</button>
+</nav>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const norm = s => (s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const key  = s => norm(s).replace(/[^a-z0-9]/g,'');
+const eur  = n => Math.round(n||0).toLocaleString('fr-FR')+' €';
+const num  = v => (typeof v==='number' && isFinite(v)) ? v : 0;
+const today = () => new Date();
+
+/* --------- petit coffre local, tolérant si indisponible --------- */
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem('velo.'+k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem('velo.'+k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem('velo.'+k); }catch(e){} }
+};
+
+let DATA = null;       // {velos, pieces, objectif, rowsV, rowsP}
+let BUF  = null;       // ArrayBuffer du classeur courant
+let PENDING = null;    // action en attente de confirmation
+let LOG = store.get('log') || [];
+
+/* =====================================================================
+   1. DROPBOX
+   ===================================================================== */
+const DBX = {
+  get appKey(){ return store.get('appKey'); },
+  get path(){ return store.get('path') || '/Suivi_velos_electriques.xlsx'; },
+  get refresh(){ return store.get('refresh'); },
+  token:null, tokenExp:0,
+
+  async begin(){
+    const verifier = [...crypto.getRandomValues(new Uint8Array(48))]
+      .map(b=>('0'+b.toString(16)).slice(-2)).join('');
+    store.set('verifier', verifier);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const u = new URL('https://www.dropbox.com/oauth2/authorize');
+    u.searchParams.set('client_id', DBX.appKey);
+    u.searchParams.set('response_type','code');
+    u.searchParams.set('token_access_type','offline');
+    u.searchParams.set('code_challenge', challenge);
+    u.searchParams.set('code_challenge_method','S256');
+    window.open(u.toString(), '_blank', 'noopener');
+  },
+
+  async finish(code){
+    const body = new URLSearchParams({
+      code: code.trim(), grant_type:'authorization_code',
+      client_id: DBX.appKey, code_verifier: store.get('verifier')||''
+    });
+    const r = await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
+    if(!r.ok) throw new Error('Code refusé par Dropbox. Recommence l’autorisation.');
+    const j = await r.json();
+    DBX.token = j.access_token; DBX.tokenExp = Date.now() + (j.expires_in-60)*1000;
+    if(j.refresh_token) store.set('refresh', j.refresh_token);
+    store.del('verifier');
+  },
+
+  async auth(){
+    if(DBX.token && Date.now() < DBX.tokenExp) return DBX.token;
+    if(!DBX.refresh) throw new Error('Dropbox n’est pas connecté.');
+    const body = new URLSearchParams({grant_type:'refresh_token', refresh_token:DBX.refresh, client_id:DBX.appKey});
+    const r = await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
+    if(!r.ok){ store.del('refresh'); throw new Error('La connexion Dropbox a expiré. Reconnecte-toi dans Réglages.'); }
+    const j = await r.json();
+    DBX.token = j.access_token; DBX.tokenExp = Date.now() + (j.expires_in-60)*1000;
+    return DBX.token;
+  },
+
+  async download(){
+    const t = await DBX.auth();
+    const r = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method:'POST',
+      headers:{Authorization:'Bearer '+t, 'Dropbox-API-Arg': JSON.stringify({path:DBX.path})}
+    });
+    if(r.status===409) throw new Error('Fichier introuvable : '+DBX.path+' dans le dossier de l’app.');
+    if(!r.ok) throw new Error('Téléchargement impossible ('+r.status+').');
+    return await r.arrayBuffer();
+  },
+
+  async upload(buf){
+    const t = await DBX.auth();
+    const r = await fetch('https://content.dropboxapi.com/2/files/upload', {
+      method:'POST',
+      headers:{Authorization:'Bearer '+t, 'Content-Type':'application/octet-stream',
+        'Dropbox-API-Arg': JSON.stringify({path:DBX.path, mode:'overwrite', mute:true})},
+      body: buf
+    });
+    if(!r.ok) throw new Error('Enregistrement refusé par Dropbox ('+r.status+').');
+  }
+};
+
+/* =====================================================================
+   2. LECTURE DU CLASSEUR
+   ===================================================================== */
+const COLS_V = {identifiant:'id', marqueetmodele:'nom', datedachat:'dAchat', prixdachat:'achat',
+                statut:'statut', datedemiseenvente:'dAnnonce', prixannonce:'annonce',
+                datedevente:'dVente', prixdeventereel:'vendu'};
+const COLS_P = {identifiantduvelo:'id', datedachat:'date', piece:'piece', fournisseur:'fournisseur',
+                quantite:'qte', prixunitaire:'pu', total:'total'};
+
+function sheetName(wb, wanted){
+  const w = key(wanted);
+  return wb.SheetNames.find(n => key(n)===w) || wb.SheetNames.find(n => key(n).startsWith(w.slice(0,4)));
+}
+function grid(wb, name){
+  const s = sheetName(wb, name);
+  if(!s) return [];
+  return XLSX.utils.sheet_to_json(wb.Sheets[s], {header:1, raw:true, defval:null, blankrows:true});
+}
+function mapGrid(raw, map){
+  if(!raw.length) return {rows:[], idx:{}};
+  const head = (raw[0]||[]).map(key);
+  const idx = {};
+  head.forEach((h,i)=>{ if(map[h]) idx[map[h]] = i; });
+  const rows = raw.slice(1).map((r,i)=>{
+    const o = {__row: i+2};
+    for(const k in idx) o[k] = r ? r[idx[k]] : null;
+    return o;
+  });
+  return {rows, idx};
+}
+function toDate(v){
+  if(v instanceof Date) return v;
+  if(typeof v==='number') return new Date(Date.UTC(1899,11,30+v));
+  if(typeof v==='string'){ const d=new Date(v); return isNaN(d)?null:d; }
+  return null;
+}
+function parseBook(buf){
+  const wb = XLSX.read(new Uint8Array(buf), {type:'array', cellDates:true});
+  const V = mapGrid(grid(wb,'Vélos'), COLS_V);
+  const P = mapGrid(grid(wb,'Pièces'), COLS_P);
+  if(!Object.keys(V.idx).length) throw new Error('Onglet « Vélos » introuvable ou en-têtes modifiés.');
+
+  const velos = V.rows.filter(b => b.id!=null && String(b.id).trim()!=='');
+  const pieces = P.rows.filter(p => p.id!=null && String(p.id).trim()!=='');
+
+  let objectif = 1000;
+  for(const r of grid(wb,'Paramètres')){
+    if(r && r[0] && norm(r[0]).includes('objectif') && typeof r[1]==='number'){ objectif=r[1]; break; }
+  }
+  const cost = {};
+  pieces.forEach(p=>{
+    const k = String(p.id).trim();
+    cost[k] = (cost[k]||0) + (num(p.total) || num(p.qte)*num(p.pu));
+  });
+  velos.forEach(b=>{
+    b.key = String(b.id).trim();
+    b.pieces = cost[b.key]||0;
+    b.cout = num(b.achat)+b.pieces;
+    b.annonce = num(b.annonce); b.vendu = num(b.vendu);
+    b.dVente = toDate(b.dVente); b.dAchat = toDate(b.dAchat);
+    b.margeAttendue = b.annonce ? b.annonce-b.cout : 0;
+    b.margeReelle = b.vendu ? b.vendu-b.cout : 0;
+    b.ecart = (b.vendu && b.annonce) ? b.vendu-b.annonce : 0;
+    b.statut = (b.statut||'').trim();
+    b.jours = b.dAchat ? Math.round(((b.dVente||today())-b.dAchat)/864e5) : null;
+  });
+  const lastV = velos.length ? Math.max(...velos.map(b=>b.__row)) : 1;
+  const lastP = pieces.length ? Math.max(...pieces.map(p=>p.__row)) : 1;
+  return {velos, pieces, objectif, nextV:lastV+1, nextP:lastP+1, colV:V.idx, colP:P.idx};
+}
+
+/* =====================================================================
+   3. ÉCRITURE CHIRURGICALE DANS LE .XLSX (styles et formules préservés)
+   ===================================================================== */
+const XLNS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const XMLDECL = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n';
+const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
+const serial = d => Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - Date.UTC(1899,11,30))/864e5);
+
+async function writeCells(buf, edits){   // edits: [{sheet,row,col(index),value,kind}]
+  const zip = await JSZip.loadAsync(buf);
+  const dp = new DOMParser(), sz = new XMLSerializer();
+  const wbDoc = dp.parseFromString(await zip.file('xl/workbook.xml').async('string'),'application/xml');
+  const relDoc = dp.parseFromString(await zip.file('xl/_rels/workbook.xml.rels').async('string'),'application/xml');
+
+  const target = {};
+  [...wbDoc.getElementsByTagName('sheet')].forEach(s=>{
+    const rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const rel = [...relDoc.getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid);
+    if(rel) target[key(s.getAttribute('name'))] = 'xl/' + rel.getAttribute('Target').replace(/^\/?xl\//,'');
+  });
+
+  const bySheet = {};
+  edits.forEach(e=>{ (bySheet[key(e.sheet)] = bySheet[key(e.sheet)] || []).push(e); });
+
+  for(const sk in bySheet){
+    const file = target[sk];
+    if(!file) throw new Error('Onglet introuvable dans le classeur : '+sk);
+    const doc = dp.parseFromString(await zip.file(file).async('string'),'application/xml');
+    const data = doc.getElementsByTagName('sheetData')[0];
+    for(const e of bySheet[sk]) setCell(doc, data, e);
+    zip.file(file, XMLDECL + sz.serializeToString(doc));
+  }
+
+  // forcer Excel à tout recalculer à l'ouverture
+  let calc = wbDoc.getElementsByTagName('calcPr')[0];
+  if(!calc){ calc = wbDoc.createElementNS(XLNS,'calcPr'); wbDoc.documentElement.appendChild(calc); }
+  calc.setAttribute('fullCalcOnLoad','1');
+  zip.file('xl/workbook.xml', XMLDECL + sz.serializeToString(wbDoc));
+
+  return await zip.generateAsync({type:'arraybuffer', compression:'DEFLATE'});
+}
+
+function setCell(doc, data, e){
+  const ref = colLetter(e.col)+e.row;
+  let row = [...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')===e.row);
+  if(!row){
+    row = doc.createElementNS(XLNS,'row'); row.setAttribute('r', String(e.row));
+    const after = [...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')>e.row);
+    data.insertBefore(row, after||null);
+  }
+  let c = [...row.getElementsByTagName('c')].find(x=>x.getAttribute('r')===ref);
+  if(!c){
+    c = doc.createElementNS(XLNS,'c'); c.setAttribute('r', ref);
+    const after = [...row.getElementsByTagName('c')].find(x=>{
+      const L = x.getAttribute('r').replace(/\d+/,'');
+      return L.length > colLetter(e.col).length || (L.length===colLetter(e.col).length && L > colLetter(e.col));
+    });
+    row.insertBefore(c, after||null);
+  }
+  while(c.firstChild) c.removeChild(c.firstChild);   // vide la valeur, garde l'attribut de style
+  c.removeAttribute('t');
+  if(e.kind==='text'){
+    c.setAttribute('t','inlineStr');
+    const is = doc.createElementNS(XLNS,'is'), t = doc.createElementNS(XLNS,'t');
+    t.setAttribute('xml:space','preserve');
+    t.appendChild(doc.createTextNode(String(e.value)));
+    is.appendChild(t); c.appendChild(is);
+  } else {
+    const v = doc.createElementNS(XLNS,'v');
+    v.appendChild(doc.createTextNode(String(e.kind==='date' ? serial(e.value) : e.value)));
+    c.appendChild(v);
+  }
+}
+
+/* =====================================================================
+   4. COMPRÉHENSION DES PHRASES
+   ===================================================================== */
+function clean(t){
+  let s = norm(t).replace(/[€]/g,' euros ').replace(/[,;:!?]/g,' ');
+  s = s.replace(/dix[- ]sept/g,'17').replace(/dix[- ]huit/g,'18').replace(/dix[- ]neuf/g,'19')
+       .replace(/quatre[- ]vingt[- ]dix/g,'90').replace(/quatre[- ]vingts?/g,'80')
+       .replace(/soixante[- ]dix/g,'70').replace(/soixante/g,'60').replace(/cinquante/g,'50')
+       .replace(/quarante/g,'40').replace(/trente/g,'30').replace(/vingt/g,'20')
+       .replace(/\bdeux cents?\b/g,'200').replace(/\btrois cents?\b/g,'300').replace(/\bcents?\b/g,'100')
+       .replace(/\bmille\b/g,'1000')
+       .replace(/\bun\b/g,'1').replace(/\bdeux\b/g,'2').replace(/\btrois\b/g,'3').replace(/\bquatre\b/g,'4')
+       .replace(/\bcinq\b/g,'5').replace(/\bsix\b/g,'6').replace(/\bsept\b/g,'7').replace(/\bhuit\b/g,'8')
+       .replace(/\bneuf\b/g,'9').replace(/\bdix\b/g,'10');
+  s = s.replace(/\s+/g,' ').trim();
+  s = s.replace(/\b([1-9])000\s+([1-9]\d{0,2})\b/g,(m,a,b)=>String(+a*1000 + +b));
+  s = s.replace(/\b([1-9]00)\s+([1-9]\d?)\b/g,(m,a,b)=>String(+a + +b));
+  return s;
+}
+function money(s){
+  let m = s.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|eur|e\b)/);
+  if(!m) m = s.match(/(\d+(?:[.,]\d+)?)\s*$/);
+  return m ? parseFloat(m[1].replace(',','.')) : null;
+}
+function findBike(s, velos){
+  let m = s.match(/\bv\s?(\d{1,3})\b/) || s.match(/\bvelos?\s+(?:numero\s+)?(\d{1,3})\b/);
+  if(m){
+    const want = 'v'+String(+m[1]).padStart(3,'0');
+    const b = velos.find(x=>key(x.key)===key(want)) || velos.find(x=>key(x.key).endsWith(String(+m[1])));
+    if(b) return b;
+  }
+  if(/\b(dernier|derniere|celui la|ce velo)\b/.test(s) && velos.length) return velos[velos.length-1];
+  let best=null, score=0;
+  velos.forEach(b=>{
+    norm(b.nom||'').split(/[^a-z0-9]+/).filter(w=>w.length>3).forEach(w=>{
+      if(s.includes(w) && w.length>score){ best=b; score=w.length; }
+    });
+  });
+  return best;
+}
+function nextId(velos){
+  const n = velos.reduce((mx,b)=>{ const m=String(b.key).match(/(\d+)/); return m?Math.max(mx,+m[1]):mx; },0);
+  return 'V'+String(n+1).padStart(3,'0');
+}
+
+function parseCommand(text){
+  const s = clean(text);
+  const V = DATA.velos;
+  if(!s) return null;
+
+  // --- nouveau vélo
+  if(/\b(nouveau|nouvelle|ajoute?r?)\b.*\bvelo\b/.test(s) || /^velo\b.*\bachet/.test(s)){
+    const prix = money(s);
+    let nom = s.replace(/.*\bvelo\b/,'')
+               .replace(/\b(achete|achetee|acheter|achat|paye|payee|a|pour|prix|de)\b[\s\S]*$/,'')
+               .trim();
+    if(!nom) nom = 'Vélo sans nom';
+    return {type:'newBike', nom: titre(nom), prix: prix||0,
+            title:'Nouveau vélo',
+            fields:[['Modèle',titre(nom)],['Prix d’achat', prix?eur(prix):'à compléter'],
+                    ['Identifiant', nextId(V)],['Statut','Acheté'],['Date', today().toLocaleDateString('fr-FR')]],
+            warn: !prix};
+  }
+
+  // --- vendu
+  if(/\bvendu|\bvendue|\ba ete vendu/.test(s)){
+    const b = findBike(s,V), prix = money(s);
+    if(!b) return unknownBike();
+    return {type:'sold', bike:b, prix: prix||b.annonce,
+            title:'Vente enregistrée',
+            fields:[['Vélo', b.nom+' ('+b.key+')'],['Prix obtenu', prix?eur(prix):eur(b.annonce)],
+                    ['Prix annoncé', b.annonce?eur(b.annonce):'—'],
+                    ['Marge', eur((prix||b.annonce) - b.cout)],['Date', today().toLocaleDateString('fr-FR')]],
+            warn: !prix};
+  }
+
+  // --- mise en vente
+  if(/\ben vente\b|\bmets? en vente\b|\bannonce\b/.test(s)){
+    const b = findBike(s,V), prix = money(s);
+    if(!b) return unknownBike();
+    return {type:'listed', bike:b, prix: prix||b.annonce,
+            title:'Mise en vente',
+            fields:[['Vélo', b.nom+' ('+b.key+')'],['Prix annoncé', prix?eur(prix):'à compléter'],
+                    ['Coût de revient', eur(b.cout)],['Marge attendue', eur((prix||0)-b.cout)],
+                    ['Date', today().toLocaleDateString('fr-FR')]],
+            warn: !prix};
+  }
+
+  // --- en réparation
+  if(/\ben reparation\b|\bje repare\b|\batelier\b/.test(s)){
+    const b = findBike(s,V);
+    if(!b) return unknownBike();
+    return {type:'status', bike:b, statut:'En réparation', title:'Changement de statut',
+            fields:[['Vélo', b.nom+' ('+b.key+')'],['Nouveau statut','En réparation']]};
+  }
+
+  // --- pièce
+  if(/\bpiece\b|\bpour le\b|\bpour v\b|\bachete\b/.test(s)){
+    const b = findBike(s,V);
+    if(!b) return unknownBike();
+    const prix = money(s);
+    const qm = s.match(/\b(\d{1,2})\s+(?!euros)/);
+    const qte = qm && +qm[1] <= 20 ? +qm[1] : 1;
+    let nom = s.replace(/^.*?\bpiece\b/,'').replace(/\bpour\b[\s\S]*?(?=\s)/,'')
+               .replace(/\bv\s?\d{1,3}\b/g,'').replace(/\bvelos?\b/g,'')
+               .replace(/\d+(?:[.,]\d+)?\s*(?:euros?|eur)\b/g,'')
+               .replace(/\b(a|de|du|le|la|les|l|pour|prix|unite|chacune|chacun|fois)\b/g,' ')
+               .replace(/\d+/g,' ').replace(/\s+/g,' ').trim();
+    if(!nom) nom = 'Pièce';
+    return {type:'part', bike:b, nom:titre(nom), qte, pu: prix? prix : 0,
+            title:'Pièce achetée',
+            fields:[['Vélo', b.nom+' ('+b.key+')'],['Pièce', titre(nom)],['Quantité', qte],
+                    ['Prix unitaire', prix?eur(prix):'à compléter'],['Total', eur((prix||0)*qte)]],
+            warn: !prix};
+  }
+  return null;
+}
+const titre = s => s.charAt(0).toUpperCase()+s.slice(1);
+const unknownBike = () => ({type:'error', title:'Vélo non reconnu',
+  fields:[['Problème','Je n’ai pas identifié de quel vélo tu parles.'],
+          ['Essaie','« V2 vendu 495 euros » ou « le VanMoof vendu 495 euros »']], warn:true, blocked:true});
+
+/* =====================================================================
+   5. APPLIQUER UNE ACTION
+   ===================================================================== */
+function editsFor(a){
+  const cV = DATA.colV, cP = DATA.colP, d = today();
+  if(a.type==='newBike'){
+    const r = DATA.nextV;
+    return [{sheet:'Vélos',row:r,col:cV.id,kind:'text',value:nextId(DATA.velos)},
+            {sheet:'Vélos',row:r,col:cV.nom,kind:'text',value:a.nom},
+            {sheet:'Vélos',row:r,col:cV.dAchat,kind:'date',value:d},
+            {sheet:'Vélos',row:r,col:cV.achat,kind:'n',value:a.prix},
+            {sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'Acheté'}];
+  }
+  if(a.type==='part'){
+    const r = DATA.nextP;
+    return [{sheet:'Pièces',row:r,col:cP.id,kind:'text',value:a.bike.key},
+            {sheet:'Pièces',row:r,col:cP.date,kind:'date',value:d},
+            {sheet:'Pièces',row:r,col:cP.piece,kind:'text',value:a.nom},
+            {sheet:'Pièces',row:r,col:cP.qte,kind:'n',value:a.qte},
+            {sheet:'Pièces',row:r,col:cP.pu,kind:'n',value:a.pu}];
+  }
+  const fresh = DATA.velos.find(x=>x.key===a.bike.key) || a.bike;
+  const r = fresh.__row;
+  if(a.type==='status') return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:a.statut}];
+  if(a.type==='listed') return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'En vente'},
+                                {sheet:'Vélos',row:r,col:cV.dAnnonce,kind:'date',value:d},
+                                {sheet:'Vélos',row:r,col:cV.annonce,kind:'n',value:a.prix||0}];
+  if(a.type==='sold')   return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'Vendu'},
+                                {sheet:'Vélos',row:r,col:cV.dVente,kind:'date',value:d},
+                                {sheet:'Vélos',row:r,col:cV.vendu,kind:'n',value:a.prix||0}];
+  return [];
+}
+
+async function commit(a){
+  toast('Enregistrement…');
+  setSync('busy','écriture');
+  try{
+    BUF = await DBX.download();                  // relire pour ne rien écraser
+    DATA = parseBook(BUF);
+    const out = await writeCells(BUF, editsFor(a));
+    await DBX.upload(out);
+    BUF = out; DATA = parseBook(out);
+    renderBoard();
+    pushLog(a);
+    setSync('on','à jour');
+    toast('Enregistré dans Dropbox');
+  }catch(err){
+    setSync('off','erreur');
+    toast(err.message || 'Enregistrement impossible.');
+  }
+}
+function pushLog(a){
+  const label = {newBike:'Vélo ajouté', part:'Pièce', listed:'Mise en vente', sold:'Vendu', status:'Statut'}[a.type]||'Saisie';
+  LOG.unshift({t:Date.now(), label, detail:a.fields[0][1]+(a.fields[1]?' — '+a.fields[1][1]:'')});
+  LOG = LOG.slice(0,12); store.set('log', LOG); renderLog();
+}
+function renderLog(){
+  $('#log').innerHTML = LOG.length ? LOG.map(l=>
+    `<li><span>${l.label} · ${l.detail}</span><span class="muted">${new Date(l.t).toLocaleDateString('fr-FR')}</span></li>`).join('')
+    : '<li class="muted">Rien encore.</li>';
+}
+
+/* =====================================================================
+   6. VOIX
+   ===================================================================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+if(SR){
+  rec = new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=1;
+  rec.onresult = e => {
+    const txt = [...e.results].map(r=>r[0].transcript).join(' ');
+    $('#heard').textContent = txt; $('#heard').classList.remove('ph');
+    if(e.results[e.results.length-1].isFinal) handle(txt);
+  };
+  rec.onerror = e => {
+    stopMic();
+    if(e.error==='not-allowed') toast('Micro refusé. Autorise-le dans les réglages du navigateur.');
+    else if(e.error!=='aborted') toast('Je n’ai rien entendu. Réessaie ou écris au clavier.');
+  };
+  rec.onend = stopMic;
+}
+function startMic(){
+  if(!rec){ toast('Ce navigateur ne gère pas la dictée. Utilise Chrome, ou le clavier.'); $('#typeBox').hidden=false; return; }
+  if(!DATA){ toast('Charge d’abord le fichier dans Réglages.'); return; }
+  try{ rec.start(); }catch(e){ return; }
+  listening = true; $('#mic').dataset.on='1'; $('#micLabel').textContent='J’écoute';
+  $('#heard').textContent='…'; $('#heard').classList.add('ph');
+}
+function stopMic(){ listening=false; $('#mic').dataset.on='0'; $('#micLabel').textContent='Dicter'; }
+
+function handle(text){
+  const a = parseCommand(text);
+  if(!a){
+    PENDING = null;
+    showConfirm({type:'error', title:'Phrase non comprise', warn:true, blocked:true,
+      fields:[['Entendu', text],['Essaie','« nouveau vélo VanMoof acheté 90 euros »']]});
+    return;
+  }
+  PENDING = a.blocked ? null : a;
+  showConfirm(a);
+}
+function showConfirm(a){
+  const c = $('#confirm');
+  c.hidden = false; c.classList.toggle('warn', !!a.warn);
+  $('#confirmTitle').textContent = a.title;
+  $('#confirmBody').innerHTML = a.fields.map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('');
+  $('#btnSave').hidden = !!a.blocked;
+  c.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* =====================================================================
+   7. TABLEAU DE BORD
+   ===================================================================== */
+function renderBoard(){
+  if(!DATA) return;
+  $('#emptyState').hidden = true;
+  const now = today();
+  const sameMonth = d => d && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  const V = DATA.velos;
+  const vendusMois = V.filter(b=>sameMonth(b.dVente));
+  const enVente = V.filter(b=>key(b.statut)==='envente');
+  const realise = vendusMois.reduce((a,b)=>a+b.margeReelle,0);
+  const potentiel = enVente.reduce((a,b)=>a+b.margeAttendue,0);
+  const objectif = DATA.objectif||1000;
+  const reste = Math.max(0, objectif-realise);
+  const vendusTous = V.filter(b=>b.vendu>0);
+  const margeMoy = vendusTous.length ? vendusTous.reduce((a,b)=>a+b.margeReelle,0)/vendusTous.length : 0;
+  const immobilise = V.filter(b=>!b.vendu).reduce((a,b)=>a+b.cout,0);
+  const dl = vendusTous.filter(b=>b.jours!=null);
+  const delai = dl.length ? dl.reduce((a,b)=>a+b.jours,0)/dl.length : 0;
+
+  $('#monthLabel').textContent = MONTHS[now.getMonth()];
+  $('#margeNow').textContent = eur(realise);
+  $('#goalTxt').textContent = eur(objectif);
+  $('#pctTxt').textContent = Math.round(realise/objectif*100)+' %';
+
+  const step = objectif/10, cells = $('#cells'); cells.innerHTML='';
+  for(let i=0;i<10;i++){
+    const lo=i*step;
+    const d = Math.min(1,Math.max(0,(realise-lo)/step));
+    const o = Math.min(1,Math.max(0,(realise+potentiel-lo)/step));
+    const el = document.createElement('div'); el.className='cell';
+    el.innerHTML = `<i class="o" style="width:${o*100}%"></i><i class="d" style="width:${d*100}%"></i>`;
+    cells.appendChild(el);
+  }
+  const fin = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const jours = Math.max(0, Math.round((fin-now)/864e5));
+  let v;
+  if(reste===0) v = 'Objectif atteint. Tout ce qui part maintenant est du bonus.';
+  else if(margeMoy>0){
+    const nb = Math.ceil(reste/margeMoy);
+    v = `Il te manque <b>${eur(reste)}</b>, soit <b>${nb} vélo${nb>1?'s':''}</b> à ta marge moyenne de ${eur(margeMoy)}. `
+      + (potentiel>=reste ? `Ce qui est déjà en vente suffit, au prix annoncé.`
+                          : `Les annonces en ligne ne couvrent que ${eur(potentiel)}.`)
+      + ` Reste ${jours} jour${jours>1?'s':''}.`;
+  } else v = `Il te manque <b>${eur(reste)}</b>. Pas encore de vente : la marge moyenne se calculera à la première.`;
+  $('#verdict').innerHTML = v;
+
+  $('#stats').innerHTML = [
+    ['Vendus ce mois', vendusMois.length],
+    ['Encaissé', eur(vendusMois.reduce((a,b)=>a+b.vendu,0))],
+    ['Marge moyenne', margeMoy?eur(margeMoy):'—'],
+    ['Argent immobilisé', eur(immobilise)],
+    ['Délai moyen', delai?Math.round(delai)+' j':'—']
+  ].map(([k,v])=>`<div class="stat"><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('');
+
+  $('#lanes').innerHTML = [
+    ['Acheté','achete','',b=>b.cout,'engagé'],
+    ['En réparation','enreparation','',b=>b.cout,'engagé'],
+    ['En vente','envente','sale',b=>b.margeAttendue,'attendus'],
+    ['Vendu ce mois','vendu','sold',b=>b.margeReelle,'de marge']
+  ].map(([lab,k,cls,f,suf])=>{
+    const list = k==='vendu' ? vendusMois : V.filter(b=>key(b.statut)===k);
+    return `<div class="lane ${cls}"><h3>${lab}</h3><div class="n num">${list.length}</div>
+            <div class="m num">${eur(list.reduce((a,b)=>a+f(b),0))} ${suf}</div></div>`;
+  }).join('');
+
+  $('#openTable').innerHTML = enVente.length ? tbl(enVente,'open') : '<p class="muted">Aucune annonce en ligne.</p>';
+  $('#soldTable').innerHTML = vendusMois.length ? tbl(vendusMois,'sold') : '<p class="muted">Pas encore de vente ce mois-ci.</p>';
+}
+function tbl(list, kind){
+  const head = kind==='open' ? ['Vélo','Coût','Annoncé','Marge attendue','Jours']
+                             : ['Vélo','Coût','Annoncé','Vendu','Écart','Marge'];
+  const body = list.map(b=> kind==='open'
+    ? `<tr><td>${b.nom||b.key}<br><span class="muted">${b.key}</span></td><td class="num">${eur(b.cout)}</td>
+       <td class="num">${eur(b.annonce)}</td><td class="num ${b.margeAttendue>=0?'pos':'neg'}">${eur(b.margeAttendue)}</td>
+       <td class="num">${b.jours??'—'}</td></tr>`
+    : `<tr><td>${b.nom||b.key}<br><span class="muted">${b.key}</span></td><td class="num">${eur(b.cout)}</td>
+       <td class="num">${b.annonce?eur(b.annonce):'—'}</td><td class="num">${eur(b.vendu)}</td>
+       <td class="num ${b.ecart<0?'neg':''}">${b.ecart?(b.ecart>0?'+':'')+eur(b.ecart):'au prix'}</td>
+       <td class="num ${b.margeReelle>=0?'pos':'neg'}">${eur(b.margeReelle)}</td></tr>`).join('');
+  return `<div class="scroll"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+/* =====================================================================
+   8. INTERFACE
+   ===================================================================== */
+function view(name){
+  ['voice','board','setup'].forEach(v=>{ $('#v-'+v).hidden = v!==name; });
+  $$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.view===name)));
+  $('#emptyState').hidden = !(name==='board' && !DATA);
+}
+$$('nav.tabs button').forEach(b=>b.onclick = ()=>view(b.dataset.view));
+
+let toastT;
+function toast(msg){
+  clearTimeout(toastT);
+  let el = $('.toast');
+  if(!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  toastT = setTimeout(()=>el.remove(), 3600);
+}
+function setSync(state, label){
+  $('#sync').innerHTML = `<i class="dot ${state}"></i><span>${label}</span>`;
+}
+
+$('#mic').onclick = ()=> listening ? rec.stop() : startMic();
+$('#btnType').onclick = ()=>{ const b=$('#typeBox'); b.hidden=!b.hidden; if(!b.hidden) $('#typed').focus(); };
+$('#btnTypeGo').onclick = ()=>{ const t=$('#typed').value.trim(); if(t){ $('#heard').textContent=t; $('#heard').classList.remove('ph'); handle(t); } };
+$('#typed').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btnTypeGo').click(); });
+$('#btnDrop').onclick = ()=>{ PENDING=null; $('#confirm').hidden=true; };
+$('#btnSave').onclick = ()=>{ if(PENDING){ const a=PENDING; PENDING=null; $('#confirm').hidden=true; commit(a); } };
+
+$('#btnAuth').onclick = async ()=>{
+  const k = $('#appkey').value.trim();
+  if(!k){ toast('Colle d’abord ton App key.'); return; }
+  store.set('appKey', k); store.set('path', $('#fpath').value.trim()||'/Suivi_velos_electriques.xlsx');
+  try{ await DBX.begin(); $('#setupCode').hidden=false; $('#authcode').focus(); }
+  catch(e){ toast('Impossible d’ouvrir la page Dropbox.'); }
+};
+$('#btnCancelCode').onclick = ()=>{ $('#setupCode').hidden=true; };
+$('#btnCode').onclick = async ()=>{
+  try{
+    await DBX.finish($('#authcode').value);
+    $('#setupCode').hidden=true; $('#setupIntro').hidden=true;
+    await load();
+  }catch(e){ toast(e.message); }
+};
+$('#btnReload').onclick = ()=>load();
+$('#btnLogout').onclick = ()=>{ store.del('refresh'); DBX.token=null; toast('Dropbox déconnecté.'); showSetup(); };
+$('#btnLocal').onclick = ()=>$('#localFile').click();
+$('#localFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload = ev => {
+    try{ BUF = ev.target.result; DATA = parseBook(BUF); renderBoard(); view('board');
+         setSync('busy','fichier local, lecture seule'); }
+    catch(err){ toast(err.message); }
+  };
+  fr.readAsArrayBuffer(f);
+});
+
+function showSetup(){
+  const on = !!DBX.refresh;
+  $('#setupIntro').hidden = on; $('#setupOk').hidden = !on;
+  if(on) $('#okPath').textContent = 'Fichier suivi : ' + DBX.path;
+  if(!on){ $('#appkey').value = DBX.appKey||''; $('#fpath').value = DBX.path; }
+}
+async function load(){
+  showSetup();
+  if(!DBX.refresh){ setSync('off','non connecté'); view('setup'); return; }
+  setSync('busy','lecture…');
+  try{
+    BUF = await DBX.download();
+    DATA = parseBook(BUF);
+    renderBoard();
+    setSync('on','à jour');
+  }catch(e){ setSync('off','erreur'); toast(e.message); view('setup'); }
+}
+
+renderLog();
+view(DBX.refresh ? 'voice' : 'setup');
+load();
+</script>
+</body>
+</html>
