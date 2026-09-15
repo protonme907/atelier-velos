@@ -13,226 +13,155 @@
 <style>
   :root{
     --paper:#E9EDEB; --surface:#fff; --ink:#16211D; --soft:#61716B; --line:#CFD9D4;
-    --done:#1F6F4A; --open:#C0851F; --open-soft:#F0E1C2; --loss:#A33B2A;
-    --pad:18px;
+    --done:#1F6F4A; --open:#C0851F; --open-bg:#F0E1C2; --loss:#A33B2A; --shop:#4A6FA5;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
   body{font-family:"Instrument Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .serif{font-family:"Instrument Serif",Georgia,serif}
+  .serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
   .num{font-variant-numeric:tabular-nums}
-  h1{font-size:22px;font-weight:400;margin:0}
-  h2{font-size:14px;font-weight:500;color:var(--soft);margin:0 0 10px}
-  a{color:var(--done)}
-  button{font:inherit;cursor:pointer}
-  :focus-visible{outline:2px solid var(--done);outline-offset:3px}
+  h1{font-size:23px;font-weight:400;margin:0}
+  h2{font-size:13px;font-weight:500;color:var(--soft);margin:22px 0 9px}
+  button{font:inherit;cursor:pointer;color:inherit}
+  :focus-visible{outline:2px solid var(--done);outline-offset:2px}
   [hidden]{display:none!important}
+  .muted{color:var(--soft);font-size:14px}
+  a{color:var(--done)}
 
-  .wrap{max-width:900px;margin:0 auto;padding:16px var(--pad) 104px}
-  header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:6px 0 18px}
-  .sync{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .wrap{max-width:820px;margin:0 auto;padding:14px 16px calc(96px + env(safe-area-inset-bottom))}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 16px}
+  .sync{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px;background:none;border:none;padding:4px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
   .dot.on{background:var(--done)} .dot.busy{background:var(--open)} .dot.off{background:var(--loss)}
 
   nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
-    display:grid;grid-template-columns:repeat(3,1fr);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
-  nav.tabs button{background:none;border:none;padding:13px 4px 15px;color:var(--soft);font-size:13px}
+    display:grid;grid-template-columns:repeat(3,1fr);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{background:none;border:none;padding:12px 4px 14px;color:var(--soft);font-size:13px}
   nav.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 2px 0 var(--done)}
 
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:18px;margin-bottom:12px}
-  .muted{color:var(--soft);font-size:14px}
-  .btn{background:var(--ink);color:#fff;border:none;border-radius:4px;padding:11px 18px;font-size:15px}
-  .btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:10px}
+  .card h2:first-child{margin-top:0}
+  .btn{background:var(--ink);color:#fff;border:none;border-radius:5px;padding:11px 17px;font-size:15px}
   .btn.go{background:var(--done)}
-  .btn:disabled{opacity:.45}
-  input[type=text],input[type=password]{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);
-    border-radius:4px;background:var(--surface);color:var(--ink)}
-  label.f{display:block;font-size:13px;color:var(--soft);margin:14px 0 5px}
-  ol.steps{padding-left:20px;margin:0}
-  ol.steps li{margin-bottom:10px;font-size:15px}
-  code{background:var(--paper);padding:1px 5px;border-radius:3px;font-size:14px}
-
-  /* ---- dictee ---- */
-  .mic-zone{text-align:center;padding:20px 0 6px}
-  .mic{width:124px;height:124px;border-radius:50%;border:none;background:var(--done);color:#fff;
-    font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;
-    box-shadow:0 2px 0 #145236}
-  .mic svg{width:34px;height:34px;fill:currentColor}
-  .mic[data-on="1"]{background:var(--loss);box-shadow:0 2px 0 #7d2a1d}
-  @media (prefers-reduced-motion:no-preference){
-    .mic[data-on="1"]{animation:pulse 1.4s ease-in-out infinite}
-    @keyframes pulse{50%{box-shadow:0 2px 0 #7d2a1d,0 0 0 14px rgba(163,59,42,.12)}}
-  }
-  .heard{min-height:26px;margin:18px 0 6px;font-size:19px;line-height:1.35}
-  .heard.ph{color:var(--soft);font-size:15px}
+  .btn.ghost{background:none;border:1px solid var(--line)}
+  .btn.danger{background:none;border:1px solid var(--line);color:var(--loss)}
+  .btn:disabled{opacity:.4}
   .row{display:flex;gap:8px;flex-wrap:wrap}
-  .confirm{border-left:3px solid var(--done);background:#F4F9F6}
-  .confirm.warn{border-left-color:var(--open);background:#FFFBF2}
-  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
-  .kv:last-of-type{border-bottom:none}
-  .kv span:first-child{color:var(--soft)}
-  .log{font-size:14px}
-  .log li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
-  .log li:last-child{border:none}
-  details.help summary{cursor:pointer;font-size:14px;color:var(--soft);padding:4px 0}
-  details.help ul{padding-left:18px;margin:8px 0 0}
-  details.help li{font-size:14px;margin-bottom:6px}
-  details.help b{font-weight:500}
 
-  /* ---- jauge ---- */
-  .big{font-size:clamp(46px,13vw,74px);line-height:.95;letter-spacing:-.02em}
-  .gauge-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .field{margin-bottom:13px}
+  .field > label{display:block;font-size:13px;color:var(--soft);margin-bottom:4px}
+  .inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:5px;background:var(--surface);
+       overflow:hidden;transition:border-color .12s}
+  .inp:focus-within{border-color:var(--done)}
+  .inp input{flex:1;min-width:0;font:inherit;border:none;background:none;color:inherit;padding:11px 12px;outline:none}
+  .inp input::-webkit-calendar-picker-indicator{opacity:.5}
+  .inp .unit{color:var(--soft);padding-right:10px;font-size:15px}
+  .clr{border:none;background:none;color:var(--soft);font-size:20px;line-height:1;padding:8px 11px;flex:none}
+  .seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .seg button{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:10px 6px;font-size:14px;color:var(--soft)}
+  .seg button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:var(--paper);font-weight:500}
+
+  .filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:99px;
+    padding:7px 14px;font-size:14px;color:var(--soft)}
+  .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .bike{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;
+    padding:13px 15px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+  .bike:active{background:var(--paper)}
+  .bike .body{flex:1;min-width:0}
+  .bike .nom{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bike .sub{font-size:13px;color:var(--soft);margin-top:1px}
+  .bike .amt{text-align:right;flex:none}
+  .bike .amt .v{font-size:17px}
+  .bike .amt .l{font-size:11px;color:var(--soft)}
+  .tag{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--soft);white-space:nowrap}
+  .tag.t1{border-color:var(--shop);color:var(--shop)}
+  .tag.t2{border-color:var(--soft)}
+  .tag.t3{border-color:var(--open);color:var(--open)}
+  .tag.t4{border-color:var(--done);color:var(--done)}
+  .pos{color:var(--done)} .neg{color:var(--loss)}
+  .fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:25;
+    background:var(--done);color:#fff;border:none;border-radius:99px;padding:14px 20px;font-size:15px;
+    box-shadow:0 3px 10px rgba(22,33,29,.22)}
+
+  .sheet{position:fixed;inset:0;background:var(--paper);z-index:40;overflow-y:auto;
+    padding:0 0 calc(92px + env(safe-area-inset-bottom))}
+  .sheet .inner{max-width:820px;margin:0 auto;padding:0 16px}
+  .sheet-top{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);z-index:2;
+    padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .sheet-top .back{border:none;background:none;font-size:26px;padding:0 6px;line-height:1}
+  .sheet-top .ttl{flex:1;min-width:0;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .recap{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:6px;overflow:hidden;margin:14px 0 20px}
+  .recap div{background:var(--surface);padding:11px 12px}
+  .recap dt{font-size:12px;color:var(--soft)}
+  .recap dd{margin:2px 0 0;font-size:19px}
+  .parts{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .part{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .part:last-child{border-bottom:none}
+  .part .p1{flex:1;min-width:0}
+  .part .p1 .n{font-size:15px}
+  .part .p1 .d{font-size:12px;color:var(--soft)}
+  .part .amt{font-size:15px}
+  .part .del{border:none;background:none;color:var(--soft);font-size:19px;padding:4px 6px;line-height:1}
+  .addpart{display:grid;grid-template-columns:1fr 58px 92px auto;gap:7px;align-items:end;margin-top:10px}
+  .addpart .field{margin:0}
+  .sheet-actions{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    padding:11px 16px calc(11px + env(safe-area-inset-bottom));display:flex;gap:9px;z-index:41}
+  .sheet-actions .btn.go{flex:1}
+
+  .big{font-size:clamp(44px,12vw,70px);line-height:.95;letter-spacing:-.02em}
+  .gauge-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .goal{text-align:right;font-size:14px;color:var(--soft)}
-  .battery{margin-top:20px;display:flex;gap:5px}
+  .battery{margin-top:18px;display:flex;gap:5px}
   .cells{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:3px;background:var(--paper);
-    border:1px solid var(--line);border-radius:3px;padding:3px;height:42px}
+    border:1px solid var(--line);border-radius:3px;padding:3px;height:40px}
   .cell{background:#fff;border-radius:1px;position:relative;overflow:hidden}
   .cell i{position:absolute;inset:0 auto 0 0}
   .cell i.d{background:var(--done)}
-  .cell i.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-soft) 3px 7px)}
-  .nub{width:6px;align-self:center;height:18px;background:var(--line);border-radius:0 2px 2px 0}
-  .legend{display:flex;gap:18px;margin-top:12px;font-size:13px;color:var(--soft);flex-wrap:wrap}
+  .cell i.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-bg) 3px 7px)}
+  .nub{width:6px;align-self:center;height:17px;background:var(--line);border-radius:0 2px 2px 0}
+  .legend{display:flex;gap:16px;margin-top:11px;font-size:13px;color:var(--soft);flex-wrap:wrap}
   .legend span{display:flex;align-items:center;gap:6px}
   .chip{width:10px;height:10px;border-radius:2px}
   .chip.d{background:var(--done)}
-  .chip.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-soft) 3px 7px)}
-  .verdict{margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:17px}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);
-    border:1px solid var(--line);border-radius:5px;overflow:hidden;margin-bottom:12px}
-  .stat{background:var(--surface);padding:13px 15px}
-  .stat dt{font-size:13px;color:var(--soft)}
-  .stat dd{margin:2px 0 0;font-size:23px}
-  .lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
-  .lane{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:12px 14px}
-  .lane h3{margin:0;font-size:13px;font-weight:500;color:var(--soft)}
-  .lane .n{font-size:27px}
-  .lane .m{font-size:13px;color:var(--soft)}
-  .lane.sale{border-color:var(--open);background:#FFFCF5}
-  .lane.sold{border-color:var(--done);background:#F5FAF7}
-  table{width:100%;border-collapse:collapse;background:var(--surface);font-size:14px}
-  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-  th:first-child,td:first-child{text-align:left;white-space:normal}
-  th{font-size:12px;font-weight:500;color:var(--soft);background:var(--paper)}
-  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:5px}
-  td.pos{color:var(--done)} td.neg{color:var(--loss)}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;background:var(--ink);color:#fff;
-    padding:11px 17px;border-radius:5px;font-size:14px;z-index:40;max-width:92vw;text-align:center}
+  .chip.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-bg) 3px 7px)}
+  .verdict{margin:18px 0 0;padding-top:15px;border-top:1px solid var(--line);font-size:17px}
+  .verdict b{font-weight:500}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .stat{background:var(--surface);padding:12px 14px}
+  .stat dt{font-size:12px;color:var(--soft)}
+  .stat dd{margin:2px 0 0;font-size:22px}
+
+  ol.steps{padding-left:19px;margin:0}
+  ol.steps li{margin-bottom:9px;font-size:15px}
+  code{background:var(--paper);padding:1px 5px;border-radius:3px;font-size:14px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom));
+    background:var(--ink);color:#fff;padding:11px 17px;border-radius:6px;font-size:14px;z-index:60;max-width:92vw;text-align:center}
+  .empty{text-align:center;color:var(--soft);padding:32px 16px;font-size:15px}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="top">
-    <h1 class="serif">Atelier vélos</h1>
-    <p class="sync" id="sync"><i class="dot"></i><span>hors ligne</span></p>
+    <h1 class="serif" id="title">Atelier vélos</h1>
+    <button class="sync" id="sync"><i class="dot"></i><span>hors ligne</span></button>
   </header>
 
-  <!-- ============ RÉGLAGES / CONNEXION ============ -->
-  <section id="v-setup" hidden>
-    <div class="card" id="setupIntro">
-      <h2>Connecter ton Dropbox</h2>
-      <p class="muted">À faire une seule fois. Tes identifiants restent chez Dropbox : cette page ne reçoit qu’un jeton d’accès limité à un seul dossier.</p>
-      <ol class="steps">
-        <li>Ouvre <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">dropbox.com/developers/apps</a> et clique <b>Create app</b>.</li>
-        <li>Choisis <b>Scoped access</b>, puis <b>App folder</b>, et nomme-la <code>Atelier velos</code>.</li>
-        <li>Onglet <b>Permissions</b> : coche <code>files.content.read</code> et <code>files.content.write</code>, puis <b>Submit</b>.</li>
-        <li>Onglet <b>Settings</b> : copie la valeur <b>App key</b> et colle-la ci-dessous.</li>
-        <li>Dépose ton fichier Excel dans <code>Dropbox / Applications / Atelier velos /</code>.</li>
-      </ol>
-      <label class="f" for="appkey">App key</label>
-      <input type="text" id="appkey" autocomplete="off" spellcheck="false" placeholder="ex. a1b2c3d4e5f6g7h">
-      <label class="f" for="fpath">Nom du fichier dans ce dossier</label>
-      <input type="text" id="fpath" value="/Suivi_velos_electriques.xlsx" spellcheck="false">
-      <div class="row" style="margin-top:16px">
-        <button class="btn go" id="btnAuth">Autoriser l’accès</button>
-      </div>
-    </div>
-
-    <div class="card" id="setupCode" hidden>
-      <h2>Coller le code d’autorisation</h2>
-      <p class="muted">Dropbox vient d’afficher un code dans l’autre onglet. Copie-le ici.</p>
-      <label class="f" for="authcode">Code</label>
-      <input type="text" id="authcode" autocomplete="off" spellcheck="false">
-      <div class="row" style="margin-top:16px">
-        <button class="btn go" id="btnCode">Terminer la connexion</button>
-        <button class="btn ghost" id="btnCancelCode">Annuler</button>
-      </div>
-    </div>
-
-    <div class="card" id="setupOk" hidden>
-      <h2>Connexion active</h2>
-      <p class="muted" id="okPath"></p>
-      <div class="row" style="margin-top:12px">
-        <button class="btn ghost" id="btnReload">Recharger le fichier</button>
-        <button class="btn ghost" id="btnLogout">Déconnecter</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Sans Dropbox</h2>
-      <p class="muted">Tu peux aussi ouvrir un fichier depuis cet appareil. En lecture seule : la dictée a besoin de Dropbox pour réécrire le fichier.</p>
-      <div class="row" style="margin-top:12px">
-        <button class="btn ghost" id="btnLocal">Ouvrir un fichier</button>
-        <input type="file" id="localFile" accept=".xlsx,.xlsm" hidden>
-      </div>
-    </div>
+  <section id="v-list" hidden>
+    <div class="filters" id="filters"></div>
+    <div id="bikeList"></div>
   </section>
 
-  <!-- ============ DICTÉE ============ -->
-  <section id="v-voice" hidden>
-    <div class="card">
-      <div class="mic-zone">
-        <button class="mic" id="mic" data-on="0">
-          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12Z"/></svg>
-          <span id="micLabel">Dicter</span>
-        </button>
-        <p class="heard ph" id="heard">Appuie, parle, relâche quand tu as fini.</p>
-        <div class="row" style="justify-content:center">
-          <button class="btn ghost" id="btnType">Écrire au clavier</button>
-        </div>
-        <div id="typeBox" hidden style="margin-top:12px">
-          <input type="text" id="typed" placeholder="nouveau vélo VanMoof S3 acheté 90 euros">
-          <div class="row" style="margin-top:10px;justify-content:center">
-            <button class="btn" id="btnTypeGo">Analyser</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card confirm" id="confirm" hidden>
-      <h2 id="confirmTitle"></h2>
-      <div id="confirmBody"></div>
-      <div class="row" style="margin-top:16px">
-        <button class="btn go" id="btnSave">Enregistrer</button>
-        <button class="btn ghost" id="btnDrop">Annuler</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Dernières saisies</h2>
-      <ul class="log" id="log" style="list-style:none;padding:0;margin:0"><li class="muted">Rien encore.</li></ul>
-    </div>
-
-    <details class="help card">
-      <summary>Les phrases que je comprends</summary>
-      <ul>
-        <li><b>nouveau vélo</b> VanMoof S3 <b>acheté</b> 90 euros</li>
-        <li><b>pièce pour</b> V2 batterie 180 euros — ou : pièce pour le VanMoof, 2 chambres à air à 12 euros</li>
-        <li>V2 <b>en réparation</b></li>
-        <li>V2 <b>en vente à</b> 560 euros</li>
-        <li>V2 <b>vendu</b> 495 euros</li>
-      </ul>
-      <p class="muted" style="margin-bottom:0">Tu peux désigner un vélo par son numéro (V2, vélo 2) ou par son nom (le VanMoof). Les dates sont celles du jour. Rien n’est écrit sans ta confirmation.</p>
-    </details>
-  </section>
-
-  <!-- ============ TABLEAU DE BORD ============ -->
   <section id="v-board" hidden>
     <div class="card">
       <div class="gauge-head">
         <div>
           <div class="big serif num" id="margeNow">0 €</div>
-          <div class="muted" style="margin-top:4px">de marge encaissée en <span id="monthLabel"></span></div>
+          <div class="muted" style="margin-top:3px">de marge encaissée en <span id="monthLabel"></span></div>
         </div>
         <div class="goal">objectif <b class="num" id="goalTxt">1 000 €</b><br><span class="num" id="pctTxt">0 %</span> atteint</div>
       </div>
@@ -240,150 +169,182 @@
       <div class="legend"><span><i class="chip d"></i>encaissé</span><span><i class="chip o"></i>en vente, au prix annoncé</span></div>
       <p class="verdict" id="verdict"></p>
     </div>
+    <h2>Le mois en chiffres</h2>
     <dl class="stats" id="stats"></dl>
-    <h2>Où en sont les vélos</h2>
-    <div class="lanes" id="lanes"></div>
-    <h2>En vente</h2>
-    <div id="openTable" style="margin-bottom:22px"></div>
+    <h2>Ce qui est en vente</h2>
+    <div id="openList"></div>
     <h2>Vendus ce mois</h2>
-    <div id="soldTable"></div>
+    <div id="soldList"></div>
   </section>
 
-  <p class="muted" id="emptyState" hidden style="margin-top:40px;text-align:center">Aucune donnée chargée. Va dans Réglages pour connecter Dropbox.</p>
+  <section id="v-setup" hidden>
+    <div class="card" id="setupIntro">
+      <h2>Connecter Dropbox</h2>
+      <p class="muted">À faire une fois. Cette page ne voit jamais ton mot de passe, seulement un accès limité à un dossier.</p>
+      <ol class="steps">
+        <li>Sur <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">dropbox.com/developers/apps</a> : <b>Create app</b>, <b>Scoped access</b>, <b>App folder</b>.</li>
+        <li>Onglet <b>Permissions</b> : <code>files.content.read</code> et <code>files.content.write</code>, puis <b>Submit</b>.</li>
+        <li>Onglet <b>Settings</b> : bouton <b>Generate</b> (section OAuth 2) pour créer le dossier, puis copie l’<b>App key</b>.</li>
+        <li>Dépose l’Excel dans <code>Applications / Atelier velos</code>.</li>
+      </ol>
+      <div class="field" style="margin-top:14px"><label for="appkey">App key</label>
+        <div class="inp"><input id="appkey" type="text" autocomplete="off" spellcheck="false" placeholder="a1b2c3d4e5f6g7h"></div></div>
+      <div class="field"><label for="fpath">Nom du fichier</label>
+        <div class="inp"><input id="fpath" type="text" spellcheck="false" value="/Suivi_velos_electriques.xlsx"></div></div>
+      <button class="btn go" id="btnAuth">Autoriser l’accès</button>
+    </div>
+
+    <div class="card" id="setupCode" hidden>
+      <h2>Code d’autorisation</h2>
+      <p class="muted">Dropbox affiche un code dans l’autre onglet. Colle-le ici.</p>
+      <div class="field"><div class="inp"><input id="authcode" type="text" autocomplete="off" spellcheck="false"></div></div>
+      <div class="row"><button class="btn go" id="btnCode">Terminer</button><button class="btn ghost" id="btnCancelCode">Annuler</button></div>
+    </div>
+
+    <div class="card" id="setupOk" hidden>
+      <h2>Connexion active</h2>
+      <p class="muted" id="okPath"></p>
+      <div class="row"><button class="btn ghost" id="btnReload">Recharger depuis Dropbox</button>
+        <button class="btn danger" id="btnLogout">Déconnecter</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Ouvrir un fichier local</h2>
+      <p class="muted">Lecture seule : les modifications ont besoin de Dropbox pour être enregistrées.</p>
+      <button class="btn ghost" id="btnLocal">Choisir un fichier</button>
+      <input type="file" id="localFile" accept=".xlsx,.xlsm" hidden>
+    </div>
+  </section>
 </div>
 
+<button class="fab" id="fab" hidden>+ Nouveau vélo</button>
+
 <nav class="tabs" role="tablist">
-  <button role="tab" data-view="voice" aria-selected="true">Dicter</button>
-  <button role="tab" data-view="board" aria-selected="false">Tableau de bord</button>
+  <button role="tab" data-view="board" aria-selected="true">Tableau de bord</button>
+  <button role="tab" data-view="list" aria-selected="false">Vélos</button>
   <button role="tab" data-view="setup" aria-selected="false">Réglages</button>
 </nav>
 
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-top">
+    <button class="back" id="sheetBack" aria-label="Retour">&#8249;</button>
+    <div class="ttl" id="sheetTitle"></div>
+    <span class="tag" id="sheetTag"></span>
+  </div>
+  <div class="inner">
+    <dl class="recap" id="recap"></dl>
+    <div id="sheetForm"></div>
+    <div id="partsBlock">
+      <h2>Pièces</h2>
+      <div class="parts" id="partsList"></div>
+      <div class="addpart">
+        <div class="field"><label for="pName">Pièce</label><div class="inp"><input id="pName" type="text" placeholder="Batterie"></div></div>
+        <div class="field"><label for="pQte">Qté</label><div class="inp"><input id="pQte" type="text" inputmode="numeric" value="1"></div></div>
+        <div class="field"><label for="pPu">Prix unit.</label><div class="inp"><input id="pPu" type="text" inputmode="decimal"><span class="unit">€</span></div></div>
+        <button class="btn" id="pAdd" style="padding:11px 14px" aria-label="Ajouter la pièce">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn danger" id="sheetDelete">Supprimer</button>
+    <button class="btn go" id="sheetSave">Enregistrer</button>
+  </div>
+</div>
+
 <script>
 "use strict";
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const norm = s => (s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-const key  = s => norm(s).replace(/[^a-z0-9]/g,'');
-const eur  = n => Math.round(n||0).toLocaleString('fr-FR')+' €';
-const num  = v => (typeof v==='number' && isFinite(v)) ? v : 0;
-const today = () => new Date();
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const MONTHS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const STATUTS=['Acheté','En réparation','En vente','Vendu'];
+const norm=s=>(s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const key=s=>norm(s).replace(/[^a-z0-9]/g,'');
+const eur=n=>Math.round(n||0).toLocaleString('fr-FR')+' €';
+const num=v=>(typeof v==='number'&&isFinite(v))?v:0;
+const today=()=>new Date();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const parseNum=s=>{const v=parseFloat(String(s==null?'':s).replace(',','.').replace(/[^\d.-]/g,''));return isFinite(v)?v:0;};
+const iso=d=>d?new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10):'';
+const fromIso=s=>{ if(!s) return null; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); };
+const fr=d=>d?d.toLocaleDateString('fr-FR'):'—';
 
-/* --------- petit coffre local, tolérant si indisponible --------- */
-const store = {
-  get(k){ try{ return JSON.parse(localStorage.getItem('velo.'+k)); }catch(e){ return null; } },
-  set(k,v){ try{ localStorage.setItem('velo.'+k, JSON.stringify(v)); }catch(e){} },
-  del(k){ try{ localStorage.removeItem('velo.'+k); }catch(e){} }
+const store={
+  get(k){ try{return JSON.parse(localStorage.getItem('velo.'+k));}catch(e){return null;} },
+  set(k,v){ try{localStorage.setItem('velo.'+k,JSON.stringify(v));}catch(e){} },
+  del(k){ try{localStorage.removeItem('velo.'+k);}catch(e){} }
 };
 
-let DATA = null;       // {velos, pieces, objectif, rowsV, rowsP}
-let BUF  = null;       // ArrayBuffer du classeur courant
-let PENDING = null;    // action en attente de confirmation
-let LOG = store.get('log') || [];
+let DATA=null, BUF=null, READONLY=false, FILTER='tous', DRAFT=null;
+let chain=Promise.resolve(), dirty=0;
 
-/* =====================================================================
-   1. DROPBOX
-   ===================================================================== */
-const DBX = {
-  get appKey(){ return store.get('appKey'); },
-  get path(){ return store.get('path') || '/Suivi_velos_electriques.xlsx'; },
-  get refresh(){ return store.get('refresh'); },
-  token:null, tokenExp:0,
-
+/* ==================== DROPBOX ==================== */
+const DBX={
+  get appKey(){return store.get('appKey');},
+  get path(){return store.get('path')||'/Suivi_velos_electriques.xlsx';},
+  get refresh(){return store.get('refresh');},
+  token:null, exp:0,
   async begin(){
-    const verifier = [...crypto.getRandomValues(new Uint8Array(48))]
-      .map(b=>('0'+b.toString(16)).slice(-2)).join('');
-    store.set('verifier', verifier);
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const u = new URL('https://www.dropbox.com/oauth2/authorize');
-    u.searchParams.set('client_id', DBX.appKey);
-    u.searchParams.set('response_type','code');
+    const ver=[...crypto.getRandomValues(new Uint8Array(48))].map(b=>('0'+b.toString(16)).slice(-2)).join('');
+    store.set('verifier',ver);
+    const dg=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver));
+    const ch=btoa(String.fromCharCode.apply(null,new Uint8Array(dg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const u=new URL('https://www.dropbox.com/oauth2/authorize');
+    u.searchParams.set('client_id',DBX.appKey); u.searchParams.set('response_type','code');
     u.searchParams.set('token_access_type','offline');
-    u.searchParams.set('code_challenge', challenge);
-    u.searchParams.set('code_challenge_method','S256');
-    window.open(u.toString(), '_blank', 'noopener');
+    u.searchParams.set('code_challenge',ch); u.searchParams.set('code_challenge_method','S256');
+    window.open(u.toString(),'_blank','noopener');
   },
-
   async finish(code){
-    const body = new URLSearchParams({
-      code: code.trim(), grant_type:'authorization_code',
-      client_id: DBX.appKey, code_verifier: store.get('verifier')||''
-    });
-    const r = await fetch('https://api.dropboxapi.com/oauth2/token',
-      {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
-    if(!r.ok) throw new Error('Code refusé par Dropbox. Recommence l’autorisation.');
-    const j = await r.json();
-    DBX.token = j.access_token; DBX.tokenExp = Date.now() + (j.expires_in-60)*1000;
-    if(j.refresh_token) store.set('refresh', j.refresh_token);
+    const body=new URLSearchParams({code:code.trim(),grant_type:'authorization_code',
+      client_id:DBX.appKey,code_verifier:store.get('verifier')||''});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok) throw new Error('Code refusé par Dropbox. Relance l’autorisation.');
+    const j=await r.json();
+    DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000;
+    if(j.refresh_token) store.set('refresh',j.refresh_token);
     store.del('verifier');
   },
-
   async auth(){
-    if(DBX.token && Date.now() < DBX.tokenExp) return DBX.token;
+    if(DBX.token&&Date.now()<DBX.exp) return DBX.token;
     if(!DBX.refresh) throw new Error('Dropbox n’est pas connecté.');
-    const body = new URLSearchParams({grant_type:'refresh_token', refresh_token:DBX.refresh, client_id:DBX.appKey});
-    const r = await fetch('https://api.dropboxapi.com/oauth2/token',
-      {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
-    if(!r.ok){ store.del('refresh'); throw new Error('La connexion Dropbox a expiré. Reconnecte-toi dans Réglages.'); }
-    const j = await r.json();
-    DBX.token = j.access_token; DBX.tokenExp = Date.now() + (j.expires_in-60)*1000;
-    return DBX.token;
+    const body=new URLSearchParams({grant_type:'refresh_token',refresh_token:DBX.refresh,client_id:DBX.appKey});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok){ store.del('refresh'); throw new Error('Connexion Dropbox expirée. Reconnecte-toi dans Réglages.'); }
+    const j=await r.json(); DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000; return DBX.token;
   },
-
   async download(){
-    const t = await DBX.auth();
-    const r = await fetch('https://content.dropboxapi.com/2/files/download', {
-      method:'POST',
-      headers:{Authorization:'Bearer '+t, 'Dropbox-API-Arg': JSON.stringify({path:DBX.path})}
-    });
-    if(r.status===409) throw new Error('Fichier introuvable : '+DBX.path+' dans le dossier de l’app.');
+    const t=await DBX.auth();
+    const r=await fetch('https://content.dropboxapi.com/2/files/download',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Dropbox-API-Arg':JSON.stringify({path:DBX.path})}});
+    if(r.status===409) throw new Error('Fichier introuvable : '+DBX.path);
     if(!r.ok) throw new Error('Téléchargement impossible ('+r.status+').');
     return await r.arrayBuffer();
   },
-
   async upload(buf){
-    const t = await DBX.auth();
-    const r = await fetch('https://content.dropboxapi.com/2/files/upload', {
-      method:'POST',
-      headers:{Authorization:'Bearer '+t, 'Content-Type':'application/octet-stream',
-        'Dropbox-API-Arg': JSON.stringify({path:DBX.path, mode:'overwrite', mute:true})},
-      body: buf
-    });
+    const t=await DBX.auth();
+    const r=await fetch('https://content.dropboxapi.com/2/files/upload',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Content-Type':'application/octet-stream',
+        'Dropbox-API-Arg':JSON.stringify({path:DBX.path,mode:'overwrite',mute:true})},body:buf});
     if(!r.ok) throw new Error('Enregistrement refusé par Dropbox ('+r.status+').');
   }
 };
 
-/* =====================================================================
-   2. LECTURE DU CLASSEUR
-   ===================================================================== */
-const COLS_V = {identifiant:'id', marqueetmodele:'nom', datedachat:'dAchat', prixdachat:'achat',
-                statut:'statut', datedemiseenvente:'dAnnonce', prixannonce:'annonce',
-                datedevente:'dVente', prixdeventereel:'vendu'};
-const COLS_P = {identifiantduvelo:'id', datedachat:'date', piece:'piece', fournisseur:'fournisseur',
-                quantite:'qte', prixunitaire:'pu', total:'total'};
+/* ==================== LECTURE ==================== */
+const COLS_V={identifiant:'id',marqueetmodele:'nom',datedachat:'dAchat',prixdachat:'achat',statut:'statut',
+  datedemiseenvente:'dAnnonce',prixannonce:'annonce',datedevente:'dVente',prixdeventereel:'vendu'};
+const COLS_P={identifiantduvelo:'id',datedachat:'date',piece:'piece',fournisseur:'fournisseur',
+  quantite:'qte',prixunitaire:'pu',total:'total'};
 
-function sheetName(wb, wanted){
-  const w = key(wanted);
-  return wb.SheetNames.find(n => key(n)===w) || wb.SheetNames.find(n => key(n).startsWith(w.slice(0,4)));
-}
-function grid(wb, name){
-  const s = sheetName(wb, name);
-  if(!s) return [];
-  return XLSX.utils.sheet_to_json(wb.Sheets[s], {header:1, raw:true, defval:null, blankrows:true});
-}
-function mapGrid(raw, map){
-  if(!raw.length) return {rows:[], idx:{}};
-  const head = (raw[0]||[]).map(key);
-  const idx = {};
-  head.forEach((h,i)=>{ if(map[h]) idx[map[h]] = i; });
-  const rows = raw.slice(1).map((r,i)=>{
-    const o = {__row: i+2};
-    for(const k in idx) o[k] = r ? r[idx[k]] : null;
-    return o;
-  });
-  return {rows, idx};
+function sheetOf(wb,w){ const k=key(w);
+  return wb.SheetNames.find(n=>key(n)===k)||wb.SheetNames.find(n=>key(n).indexOf(k.slice(0,4))===0); }
+function grid(wb,n){ const s=sheetOf(wb,n);
+  return s?XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,raw:true,defval:null,blankrows:true}):[]; }
+function mapGrid(raw,map){
+  if(!raw.length) return {rows:[],idx:{}};
+  const head=(raw[0]||[]).map(key), idx={};
+  head.forEach((h,i)=>{ if(map[h]!==undefined) idx[map[h]]=i; });
+  return {rows:raw.slice(1).map((r,i)=>{const o={__row:i+2}; for(const k in idx) o[k]=r?r[idx[k]]:null; return o;}),idx};
 }
 function toDate(v){
   if(v instanceof Date) return v;
@@ -392,508 +353,431 @@ function toDate(v){
   return null;
 }
 function parseBook(buf){
-  const wb = XLSX.read(new Uint8Array(buf), {type:'array', cellDates:true});
-  const V = mapGrid(grid(wb,'Vélos'), COLS_V);
-  const P = mapGrid(grid(wb,'Pièces'), COLS_P);
-  if(!Object.keys(V.idx).length) throw new Error('Onglet « Vélos » introuvable ou en-têtes modifiés.');
-
-  const velos = V.rows.filter(b => b.id!=null && String(b.id).trim()!=='');
-  const pieces = P.rows.filter(p => p.id!=null && String(p.id).trim()!=='');
-
-  let objectif = 1000;
-  for(const r of grid(wb,'Paramètres')){
-    if(r && r[0] && norm(r[0]).includes('objectif') && typeof r[1]==='number'){ objectif=r[1]; break; }
+  const wb=XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true});
+  const V=mapGrid(grid(wb,'Vélos'),COLS_V), P=mapGrid(grid(wb,'Pièces'),COLS_P);
+  if(V.idx.id===undefined) throw new Error('Onglet « Vélos » introuvable ou en-têtes modifiés.');
+  const velos=V.rows.filter(b=>b.id!=null&&String(b.id).trim()!=='').map(b=>({
+    __row:b.__row, key:String(b.id).trim(), nom:b.nom||'', statut:(b.statut||'').trim(),
+    dAchat:toDate(b.dAchat), achat:num(b.achat), dAnnonce:toDate(b.dAnnonce), annonce:num(b.annonce),
+    dVente:toDate(b.dVente), vendu:num(b.vendu)}));
+  const pieces=P.rows.filter(p=>p.id!=null&&String(p.id).trim()!=='').map(p=>({
+    __row:p.__row, bike:String(p.id).trim(), date:toDate(p.date), nom:p.piece||'',
+    qte:num(p.qte)||1, pu:num(p.pu)}));
+  let objectif=1000;
+  const par=grid(wb,'Paramètres');
+  for(let i=0;i<par.length;i++){
+    const r=par[i];
+    if(r&&r[0]&&norm(r[0]).indexOf('objectif')>=0&&typeof r[1]==='number'){ objectif=r[1]; break; }
   }
-  const cost = {};
-  pieces.forEach(p=>{
-    const k = String(p.id).trim();
-    cost[k] = (cost[k]||0) + (num(p.total) || num(p.qte)*num(p.pu));
+  const d={velos,pieces,objectif,colV:V.idx,colP:P.idx,
+    nextV:(velos.length?Math.max.apply(null,velos.map(b=>b.__row)):1)+1,
+    nextP:(pieces.length?Math.max.apply(null,pieces.map(p=>p.__row)):1)+1};
+  recompute(d); return d;
+}
+function recompute(d){
+  const cost={};
+  d.pieces.forEach(p=>{ cost[p.bike]=(cost[p.bike]||0)+p.qte*p.pu; });
+  d.velos.forEach(b=>{
+    b.pieces=cost[b.key]||0;
+    b.cout=b.achat+b.pieces;
+    b.margeAttendue=b.annonce?b.annonce-b.cout:0;
+    b.margeReelle=b.vendu?b.vendu-b.cout:0;
+    b.jours=b.dAchat?Math.round(((b.dVente||today())-b.dAchat)/864e5):null;
   });
-  velos.forEach(b=>{
-    b.key = String(b.id).trim();
-    b.pieces = cost[b.key]||0;
-    b.cout = num(b.achat)+b.pieces;
-    b.annonce = num(b.annonce); b.vendu = num(b.vendu);
-    b.dVente = toDate(b.dVente); b.dAchat = toDate(b.dAchat);
-    b.margeAttendue = b.annonce ? b.annonce-b.cout : 0;
-    b.margeReelle = b.vendu ? b.vendu-b.cout : 0;
-    b.ecart = (b.vendu && b.annonce) ? b.vendu-b.annonce : 0;
-    b.statut = (b.statut||'').trim();
-    b.jours = b.dAchat ? Math.round(((b.dVente||today())-b.dAchat)/864e5) : null;
-  });
-  const lastV = velos.length ? Math.max(...velos.map(b=>b.__row)) : 1;
-  const lastP = pieces.length ? Math.max(...pieces.map(p=>p.__row)) : 1;
-  return {velos, pieces, objectif, nextV:lastV+1, nextP:lastP+1, colV:V.idx, colP:P.idx};
 }
 
-/* =====================================================================
-   3. ÉCRITURE CHIRURGICALE DANS LE .XLSX (styles et formules préservés)
-   ===================================================================== */
-const XLNS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
-const XMLDECL = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n';
-const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
-const serial = d => Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()) - Date.UTC(1899,11,30))/864e5);
+/* ==================== ÉCRITURE XLSX ==================== */
+const XLNS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const XMLDECL='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n';
+const colLetter=i=>{ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
+const serial=d=>Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/864e5);
 
-async function writeCells(buf, edits){   // edits: [{sheet,row,col(index),value,kind}]
-  const zip = await JSZip.loadAsync(buf);
-  const dp = new DOMParser(), sz = new XMLSerializer();
-  const wbDoc = dp.parseFromString(await zip.file('xl/workbook.xml').async('string'),'application/xml');
-  const relDoc = dp.parseFromString(await zip.file('xl/_rels/workbook.xml.rels').async('string'),'application/xml');
-
-  const target = {};
+async function writeCells(buf,edits){
+  const zip=await JSZip.loadAsync(buf), dp=new DOMParser(), sz=new XMLSerializer();
+  const wbDoc=dp.parseFromString(await zip.file('xl/workbook.xml').async('string'),'application/xml');
+  const relDoc=dp.parseFromString(await zip.file('xl/_rels/workbook.xml.rels').async('string'),'application/xml');
+  const target={};
   [...wbDoc.getElementsByTagName('sheet')].forEach(s=>{
-    const rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
-    const rel = [...relDoc.getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid);
-    if(rel) target[key(s.getAttribute('name'))] = 'xl/' + rel.getAttribute('Target').replace(/^\/?xl\//,'');
+    const rid=s.getAttribute('r:id')||s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const rel=[...relDoc.getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid);
+    if(rel) target[key(s.getAttribute('name'))]='xl/'+rel.getAttribute('Target').replace(/^\/?xl\//,'');
   });
-
-  const bySheet = {};
-  edits.forEach(e=>{ (bySheet[key(e.sheet)] = bySheet[key(e.sheet)] || []).push(e); });
-
-  for(const sk in bySheet){
-    const file = target[sk];
-    if(!file) throw new Error('Onglet introuvable dans le classeur : '+sk);
-    const doc = dp.parseFromString(await zip.file(file).async('string'),'application/xml');
-    const data = doc.getElementsByTagName('sheetData')[0];
-    for(const e of bySheet[sk]) setCell(doc, data, e);
-    zip.file(file, XMLDECL + sz.serializeToString(doc));
+  const by={}; edits.forEach(e=>{ (by[key(e.sheet)]=by[key(e.sheet)]||[]).push(e); });
+  for(const k in by){
+    const f=target[k]; if(!f) throw new Error('Onglet introuvable : '+k);
+    const doc=dp.parseFromString(await zip.file(f).async('string'),'application/xml');
+    const data=doc.getElementsByTagName('sheetData')[0];
+    by[k].forEach(e=>setCell(doc,data,e));
+    zip.file(f,XMLDECL+sz.serializeToString(doc));
   }
-
-  // forcer Excel à tout recalculer à l'ouverture
-  let calc = wbDoc.getElementsByTagName('calcPr')[0];
-  if(!calc){ calc = wbDoc.createElementNS(XLNS,'calcPr'); wbDoc.documentElement.appendChild(calc); }
+  let calc=wbDoc.getElementsByTagName('calcPr')[0];
+  if(!calc){ calc=wbDoc.createElementNS(XLNS,'calcPr'); wbDoc.documentElement.appendChild(calc); }
   calc.setAttribute('fullCalcOnLoad','1');
-  zip.file('xl/workbook.xml', XMLDECL + sz.serializeToString(wbDoc));
-
-  return await zip.generateAsync({type:'arraybuffer', compression:'DEFLATE'});
+  zip.file('xl/workbook.xml',XMLDECL+sz.serializeToString(wbDoc));
+  return await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
 }
-
-function setCell(doc, data, e){
-  const ref = colLetter(e.col)+e.row;
-  let row = [...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')===e.row);
+function setCell(doc,data,e){
+  const L=colLetter(e.col), ref=L+e.row;
+  let row=[...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')===e.row);
   if(!row){
-    row = doc.createElementNS(XLNS,'row'); row.setAttribute('r', String(e.row));
-    const after = [...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')>e.row);
-    data.insertBefore(row, after||null);
+    row=doc.createElementNS(XLNS,'row'); row.setAttribute('r',String(e.row));
+    const a=[...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')>e.row);
+    data.insertBefore(row,a||null);
   }
-  let c = [...row.getElementsByTagName('c')].find(x=>x.getAttribute('r')===ref);
+  let c=[...row.getElementsByTagName('c')].find(x=>x.getAttribute('r')===ref);
   if(!c){
-    c = doc.createElementNS(XLNS,'c'); c.setAttribute('r', ref);
-    const after = [...row.getElementsByTagName('c')].find(x=>{
-      const L = x.getAttribute('r').replace(/\d+/,'');
-      return L.length > colLetter(e.col).length || (L.length===colLetter(e.col).length && L > colLetter(e.col));
+    c=doc.createElementNS(XLNS,'c'); c.setAttribute('r',ref);
+    const a=[...row.getElementsByTagName('c')].find(x=>{
+      const l=x.getAttribute('r').replace(/\d+/,'');
+      return l.length>L.length||(l.length===L.length&&l>L);
     });
-    row.insertBefore(c, after||null);
+    row.insertBefore(c,a||null);
   }
-  while(c.firstChild) c.removeChild(c.firstChild);   // vide la valeur, garde l'attribut de style
+  while(c.firstChild) c.removeChild(c.firstChild);
   c.removeAttribute('t');
+  if(e.kind==='clear') return;
   if(e.kind==='text'){
     c.setAttribute('t','inlineStr');
-    const is = doc.createElementNS(XLNS,'is'), t = doc.createElementNS(XLNS,'t');
-    t.setAttribute('xml:space','preserve');
-    t.appendChild(doc.createTextNode(String(e.value)));
+    const is=doc.createElementNS(XLNS,'is'), t=doc.createElementNS(XLNS,'t');
+    t.setAttribute('xml:space','preserve'); t.appendChild(doc.createTextNode(String(e.value)));
     is.appendChild(t); c.appendChild(is);
-  } else {
-    const v = doc.createElementNS(XLNS,'v');
-    v.appendChild(doc.createTextNode(String(e.kind==='date' ? serial(e.value) : e.value)));
+  }else{
+    const v=doc.createElementNS(XLNS,'v');
+    v.appendChild(doc.createTextNode(String(e.kind==='date'?serial(e.value):e.value)));
     c.appendChild(v);
   }
 }
 
-/* =====================================================================
-   4. COMPRÉHENSION DES PHRASES
-   ===================================================================== */
-function clean(t){
-  let s = norm(t).replace(/[€]/g,' euros ').replace(/[,;:!?]/g,' ');
-  s = s.replace(/dix[- ]sept/g,'17').replace(/dix[- ]huit/g,'18').replace(/dix[- ]neuf/g,'19')
-       .replace(/quatre[- ]vingt[- ]dix/g,'90').replace(/quatre[- ]vingts?/g,'80')
-       .replace(/soixante[- ]dix/g,'70').replace(/soixante/g,'60').replace(/cinquante/g,'50')
-       .replace(/quarante/g,'40').replace(/trente/g,'30').replace(/vingt/g,'20')
-       .replace(/\bdeux cents?\b/g,'200').replace(/\btrois cents?\b/g,'300').replace(/\bcents?\b/g,'100')
-       .replace(/\bmille\b/g,'1000')
-       .replace(/\bun\b/g,'1').replace(/\bdeux\b/g,'2').replace(/\btrois\b/g,'3').replace(/\bquatre\b/g,'4')
-       .replace(/\bcinq\b/g,'5').replace(/\bsix\b/g,'6').replace(/\bsept\b/g,'7').replace(/\bhuit\b/g,'8')
-       .replace(/\bneuf\b/g,'9').replace(/\bdix\b/g,'10');
-  s = s.replace(/\s+/g,' ').trim();
-  s = s.replace(/\b([1-9])000\s+([1-9]\d{0,2})\b/g,(m,a,b)=>String(+a*1000 + +b));
-  s = s.replace(/\b([1-9]00)\s+([1-9]\d?)\b/g,(m,a,b)=>String(+a + +b));
-  return s;
+/* ==================== SYNCHRO ==================== */
+function push(edits){
+  if(!edits||!edits.length) return;
+  if(READONLY){ toast('Fichier local : rien n’est enregistré.'); return; }
+  dirty++; setSync('busy','enregistrement…');
+  chain=chain.then(async()=>{
+    BUF=await writeCells(BUF,edits);
+    await DBX.upload(BUF);
+  }).then(()=>{ dirty--; if(!dirty) setSync('on','à jour'); })
+    .catch(err=>{ dirty--; setSync('off','non enregistré'); toast(err.message||'Enregistrement impossible.'); });
 }
-function money(s){
-  let m = s.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|eur|e\b)/);
-  if(!m) m = s.match(/(\d+(?:[.,]\d+)?)\s*$/);
-  return m ? parseFloat(m[1].replace(',','.')) : null;
-}
-function findBike(s, velos){
-  let m = s.match(/\bv\s?(\d{1,3})\b/) || s.match(/\bvelos?\s+(?:numero\s+)?(\d{1,3})\b/);
-  if(m){
-    const want = 'v'+String(+m[1]).padStart(3,'0');
-    const b = velos.find(x=>key(x.key)===key(want)) || velos.find(x=>key(x.key).endsWith(String(+m[1])));
-    if(b) return b;
-  }
-  if(/\b(dernier|derniere|celui la|ce velo)\b/.test(s) && velos.length) return velos[velos.length-1];
-  let best=null, score=0;
-  velos.forEach(b=>{
-    norm(b.nom||'').split(/[^a-z0-9]+/).filter(w=>w.length>3).forEach(w=>{
-      if(s.includes(w) && w.length>score){ best=b; score=w.length; }
-    });
-  });
-  return best;
-}
-function nextId(velos){
-  const n = velos.reduce((mx,b)=>{ const m=String(b.key).match(/(\d+)/); return m?Math.max(mx,+m[1]):mx; },0);
+
+/* ==================== CELLULES ==================== */
+function nextId(){
+  const n=DATA.velos.reduce((m,b)=>{const x=String(b.key).match(/(\d+)/);return x?Math.max(m,+x[1]):m;},0);
   return 'V'+String(n+1).padStart(3,'0');
 }
-
-function parseCommand(text){
-  const s = clean(text);
-  const V = DATA.velos;
-  if(!s) return null;
-
-  // --- nouveau vélo
-  if(/\b(nouveau|nouvelle|ajoute?r?)\b.*\bvelo\b/.test(s) || /^velo\b.*\bachet/.test(s)){
-    const prix = money(s);
-    let nom = s.replace(/.*\bvelo\b/,'')
-               .replace(/\b(achete|achetee|acheter|achat|paye|payee|a|pour|prix|de)\b[\s\S]*$/,'')
-               .trim();
-    if(!nom) nom = 'Vélo sans nom';
-    return {type:'newBike', nom: titre(nom), prix: prix||0,
-            title:'Nouveau vélo',
-            fields:[['Modèle',titre(nom)],['Prix d’achat', prix?eur(prix):'à compléter'],
-                    ['Identifiant', nextId(V)],['Statut','Acheté'],['Date', today().toLocaleDateString('fr-FR')]],
-            warn: !prix};
-  }
-
-  // --- vendu
-  if(/\bvendu|\bvendue|\ba ete vendu/.test(s)){
-    const b = findBike(s,V), prix = money(s);
-    if(!b) return unknownBike();
-    return {type:'sold', bike:b, prix: prix||b.annonce,
-            title:'Vente enregistrée',
-            fields:[['Vélo', b.nom+' ('+b.key+')'],['Prix obtenu', prix?eur(prix):eur(b.annonce)],
-                    ['Prix annoncé', b.annonce?eur(b.annonce):'—'],
-                    ['Marge', eur((prix||b.annonce) - b.cout)],['Date', today().toLocaleDateString('fr-FR')]],
-            warn: !prix};
-  }
-
-  // --- mise en vente
-  if(/\ben vente\b|\bmets? en vente\b|\bannonce\b/.test(s)){
-    const b = findBike(s,V), prix = money(s);
-    if(!b) return unknownBike();
-    return {type:'listed', bike:b, prix: prix||b.annonce,
-            title:'Mise en vente',
-            fields:[['Vélo', b.nom+' ('+b.key+')'],['Prix annoncé', prix?eur(prix):'à compléter'],
-                    ['Coût de revient', eur(b.cout)],['Marge attendue', eur((prix||0)-b.cout)],
-                    ['Date', today().toLocaleDateString('fr-FR')]],
-            warn: !prix};
-  }
-
-  // --- en réparation
-  if(/\ben reparation\b|\bje repare\b|\batelier\b/.test(s)){
-    const b = findBike(s,V);
-    if(!b) return unknownBike();
-    return {type:'status', bike:b, statut:'En réparation', title:'Changement de statut',
-            fields:[['Vélo', b.nom+' ('+b.key+')'],['Nouveau statut','En réparation']]};
-  }
-
-  // --- pièce
-  if(/\bpiece\b|\bpour le\b|\bpour v\b|\bachete\b/.test(s)){
-    const b = findBike(s,V);
-    if(!b) return unknownBike();
-    const prix = money(s);
-    const qm = s.match(/\b(\d{1,2})\s+(?!euros)/);
-    const qte = qm && +qm[1] <= 20 ? +qm[1] : 1;
-    let nom = s.replace(/^.*?\bpiece\b/,'').replace(/\bpour\b[\s\S]*?(?=\s)/,'')
-               .replace(/\bv\s?\d{1,3}\b/g,'').replace(/\bvelos?\b/g,'')
-               .replace(/\d+(?:[.,]\d+)?\s*(?:euros?|eur)\b/g,'')
-               .replace(/\b(a|de|du|le|la|les|l|pour|prix|unite|chacune|chacun|fois)\b/g,' ')
-               .replace(/\d+/g,' ').replace(/\s+/g,' ').trim();
-    if(!nom) nom = 'Pièce';
-    return {type:'part', bike:b, nom:titre(nom), qte, pu: prix? prix : 0,
-            title:'Pièce achetée',
-            fields:[['Vélo', b.nom+' ('+b.key+')'],['Pièce', titre(nom)],['Quantité', qte],
-                    ['Prix unitaire', prix?eur(prix):'à compléter'],['Total', eur((prix||0)*qte)]],
-            warn: !prix};
-  }
-  return null;
+const cell=(sheet,row,col,kind,value)=>
+  (col===undefined?null:(value===''||value==null||value===0&&kind!=='text'
+    ?{sheet,row,col,kind:'clear'}:{sheet,row,col,kind,value}));
+function cellsFor(b,row){
+  const c=DATA.colV;
+  return [cell('Vélos',row,c.id,'text',b.key),
+          cell('Vélos',row,c.nom,'text',b.nom||''),
+          cell('Vélos',row,c.dAchat,'date',b.dAchat),
+          cell('Vélos',row,c.achat,'n',b.achat),
+          cell('Vélos',row,c.statut,'text',b.statut||''),
+          cell('Vélos',row,c.dAnnonce,'date',b.dAnnonce),
+          cell('Vélos',row,c.annonce,'n',b.annonce),
+          cell('Vélos',row,c.dVente,'date',b.dVente),
+          cell('Vélos',row,c.vendu,'n',b.vendu)].filter(Boolean);
 }
-const titre = s => s.charAt(0).toUpperCase()+s.slice(1);
-const unknownBike = () => ({type:'error', title:'Vélo non reconnu',
-  fields:[['Problème','Je n’ai pas identifié de quel vélo tu parles.'],
-          ['Essaie','« V2 vendu 495 euros » ou « le VanMoof vendu 495 euros »']], warn:true, blocked:true});
-
-/* =====================================================================
-   5. APPLIQUER UNE ACTION
-   ===================================================================== */
-function editsFor(a){
-  const cV = DATA.colV, cP = DATA.colP, d = today();
-  if(a.type==='newBike'){
-    const r = DATA.nextV;
-    return [{sheet:'Vélos',row:r,col:cV.id,kind:'text',value:nextId(DATA.velos)},
-            {sheet:'Vélos',row:r,col:cV.nom,kind:'text',value:a.nom},
-            {sheet:'Vélos',row:r,col:cV.dAchat,kind:'date',value:d},
-            {sheet:'Vélos',row:r,col:cV.achat,kind:'n',value:a.prix},
-            {sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'Acheté'}];
-  }
-  if(a.type==='part'){
-    const r = DATA.nextP;
-    return [{sheet:'Pièces',row:r,col:cP.id,kind:'text',value:a.bike.key},
-            {sheet:'Pièces',row:r,col:cP.date,kind:'date',value:d},
-            {sheet:'Pièces',row:r,col:cP.piece,kind:'text',value:a.nom},
-            {sheet:'Pièces',row:r,col:cP.qte,kind:'n',value:a.qte},
-            {sheet:'Pièces',row:r,col:cP.pu,kind:'n',value:a.pu}];
-  }
-  const fresh = DATA.velos.find(x=>x.key===a.bike.key) || a.bike;
-  const r = fresh.__row;
-  if(a.type==='status') return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:a.statut}];
-  if(a.type==='listed') return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'En vente'},
-                                {sheet:'Vélos',row:r,col:cV.dAnnonce,kind:'date',value:d},
-                                {sheet:'Vélos',row:r,col:cV.annonce,kind:'n',value:a.prix||0}];
-  if(a.type==='sold')   return [{sheet:'Vélos',row:r,col:cV.statut,kind:'text',value:'Vendu'},
-                                {sheet:'Vélos',row:r,col:cV.dVente,kind:'date',value:d},
-                                {sheet:'Vélos',row:r,col:cV.vendu,kind:'n',value:a.prix||0}];
-  return [];
+function partCells(p,row){
+  const c=DATA.colP;
+  return [cell('Pièces',row,c.id,'text',p.bike),
+          cell('Pièces',row,c.date,'date',p.date),
+          cell('Pièces',row,c.piece,'text',p.nom||''),
+          cell('Pièces',row,c.qte,'n',p.qte||1),
+          cell('Pièces',row,c.pu,'n',p.pu)].filter(Boolean);
 }
+const clearRow=(sheet,row,cols)=>Object.keys(cols).map(k=>({sheet,row,col:cols[k],kind:'clear'}));
 
-async function commit(a){
-  toast('Enregistrement…');
-  setSync('busy','écriture');
-  try{
-    BUF = await DBX.download();                  // relire pour ne rien écraser
-    DATA = parseBook(BUF);
-    const out = await writeCells(BUF, editsFor(a));
-    await DBX.upload(out);
-    BUF = out; DATA = parseBook(out);
-    renderBoard();
-    pushLog(a);
-    setSync('on','à jour');
-    toast('Enregistré dans Dropbox');
-  }catch(err){
-    setSync('off','erreur');
-    toast(err.message || 'Enregistrement impossible.');
-  }
+/* ==================== VUES ==================== */
+function view(n){
+  ['board','list','setup'].forEach(v=>$('#v-'+v).hidden=v!==n);
+  $$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===n)));
+  $('#fab').hidden=!(n==='list'&&DATA&&!READONLY);
+  $('#title').textContent={board:'Atelier vélos',list:'Mes vélos',setup:'Réglages'}[n];
+  store.set('view',n);
 }
-function pushLog(a){
-  const label = {newBike:'Vélo ajouté', part:'Pièce', listed:'Mise en vente', sold:'Vendu', status:'Statut'}[a.type]||'Saisie';
-  LOG.unshift({t:Date.now(), label, detail:a.fields[0][1]+(a.fields[1]?' — '+a.fields[1][1]:'')});
-  LOG = LOG.slice(0,12); store.set('log', LOG); renderLog();
-}
-function renderLog(){
-  $('#log').innerHTML = LOG.length ? LOG.map(l=>
-    `<li><span>${l.label} · ${l.detail}</span><span class="muted">${new Date(l.t).toLocaleDateString('fr-FR')}</span></li>`).join('')
-    : '<li class="muted">Rien encore.</li>';
-}
-
-/* =====================================================================
-   6. VOIX
-   ===================================================================== */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, listening = false;
-if(SR){
-  rec = new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=1;
-  rec.onresult = e => {
-    const txt = [...e.results].map(r=>r[0].transcript).join(' ');
-    $('#heard').textContent = txt; $('#heard').classList.remove('ph');
-    if(e.results[e.results.length-1].isFinal) handle(txt);
-  };
-  rec.onerror = e => {
-    stopMic();
-    if(e.error==='not-allowed') toast('Micro refusé. Autorise-le dans les réglages du navigateur.');
-    else if(e.error!=='aborted') toast('Je n’ai rien entendu. Réessaie ou écris au clavier.');
-  };
-  rec.onend = stopMic;
-}
-function startMic(){
-  if(!rec){ toast('Ce navigateur ne gère pas la dictée. Utilise Chrome, ou le clavier.'); $('#typeBox').hidden=false; return; }
-  if(!DATA){ toast('Charge d’abord le fichier dans Réglages.'); return; }
-  try{ rec.start(); }catch(e){ return; }
-  listening = true; $('#mic').dataset.on='1'; $('#micLabel').textContent='J’écoute';
-  $('#heard').textContent='…'; $('#heard').classList.add('ph');
-}
-function stopMic(){ listening=false; $('#mic').dataset.on='0'; $('#micLabel').textContent='Dicter'; }
-
-function handle(text){
-  const a = parseCommand(text);
-  if(!a){
-    PENDING = null;
-    showConfirm({type:'error', title:'Phrase non comprise', warn:true, blocked:true,
-      fields:[['Entendu', text],['Essaie','« nouveau vélo VanMoof acheté 90 euros »']]});
-    return;
-  }
-  PENDING = a.blocked ? null : a;
-  showConfirm(a);
-}
-function showConfirm(a){
-  const c = $('#confirm');
-  c.hidden = false; c.classList.toggle('warn', !!a.warn);
-  $('#confirmTitle').textContent = a.title;
-  $('#confirmBody').innerHTML = a.fields.map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('');
-  $('#btnSave').hidden = !!a.blocked;
-  c.scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-/* =====================================================================
-   7. TABLEAU DE BORD
-   ===================================================================== */
-function renderBoard(){
-  if(!DATA) return;
-  $('#emptyState').hidden = true;
-  const now = today();
-  const sameMonth = d => d && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-  const V = DATA.velos;
-  const vendusMois = V.filter(b=>sameMonth(b.dVente));
-  const enVente = V.filter(b=>key(b.statut)==='envente');
-  const realise = vendusMois.reduce((a,b)=>a+b.margeReelle,0);
-  const potentiel = enVente.reduce((a,b)=>a+b.margeAttendue,0);
-  const objectif = DATA.objectif||1000;
-  const reste = Math.max(0, objectif-realise);
-  const vendusTous = V.filter(b=>b.vendu>0);
-  const margeMoy = vendusTous.length ? vendusTous.reduce((a,b)=>a+b.margeReelle,0)/vendusTous.length : 0;
-  const immobilise = V.filter(b=>!b.vendu).reduce((a,b)=>a+b.cout,0);
-  const dl = vendusTous.filter(b=>b.jours!=null);
-  const delai = dl.length ? dl.reduce((a,b)=>a+b.jours,0)/dl.length : 0;
-
-  $('#monthLabel').textContent = MONTHS[now.getMonth()];
-  $('#margeNow').textContent = eur(realise);
-  $('#goalTxt').textContent = eur(objectif);
-  $('#pctTxt').textContent = Math.round(realise/objectif*100)+' %';
-
-  const step = objectif/10, cells = $('#cells'); cells.innerHTML='';
-  for(let i=0;i<10;i++){
-    const lo=i*step;
-    const d = Math.min(1,Math.max(0,(realise-lo)/step));
-    const o = Math.min(1,Math.max(0,(realise+potentiel-lo)/step));
-    const el = document.createElement('div'); el.className='cell';
-    el.innerHTML = `<i class="o" style="width:${o*100}%"></i><i class="d" style="width:${d*100}%"></i>`;
-    cells.appendChild(el);
-  }
-  const fin = new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const jours = Math.max(0, Math.round((fin-now)/864e5));
-  let v;
-  if(reste===0) v = 'Objectif atteint. Tout ce qui part maintenant est du bonus.';
-  else if(margeMoy>0){
-    const nb = Math.ceil(reste/margeMoy);
-    v = `Il te manque <b>${eur(reste)}</b>, soit <b>${nb} vélo${nb>1?'s':''}</b> à ta marge moyenne de ${eur(margeMoy)}. `
-      + (potentiel>=reste ? `Ce qui est déjà en vente suffit, au prix annoncé.`
-                          : `Les annonces en ligne ne couvrent que ${eur(potentiel)}.`)
-      + ` Reste ${jours} jour${jours>1?'s':''}.`;
-  } else v = `Il te manque <b>${eur(reste)}</b>. Pas encore de vente : la marge moyenne se calculera à la première.`;
-  $('#verdict').innerHTML = v;
-
-  $('#stats').innerHTML = [
-    ['Vendus ce mois', vendusMois.length],
-    ['Encaissé', eur(vendusMois.reduce((a,b)=>a+b.vendu,0))],
-    ['Marge moyenne', margeMoy?eur(margeMoy):'—'],
-    ['Argent immobilisé', eur(immobilise)],
-    ['Délai moyen', delai?Math.round(delai)+' j':'—']
-  ].map(([k,v])=>`<div class="stat"><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('');
-
-  $('#lanes').innerHTML = [
-    ['Acheté','achete','',b=>b.cout,'engagé'],
-    ['En réparation','enreparation','',b=>b.cout,'engagé'],
-    ['En vente','envente','sale',b=>b.margeAttendue,'attendus'],
-    ['Vendu ce mois','vendu','sold',b=>b.margeReelle,'de marge']
-  ].map(([lab,k,cls,f,suf])=>{
-    const list = k==='vendu' ? vendusMois : V.filter(b=>key(b.statut)===k);
-    return `<div class="lane ${cls}"><h3>${lab}</h3><div class="n num">${list.length}</div>
-            <div class="m num">${eur(list.reduce((a,b)=>a+f(b),0))} ${suf}</div></div>`;
-  }).join('');
-
-  $('#openTable').innerHTML = enVente.length ? tbl(enVente,'open') : '<p class="muted">Aucune annonce en ligne.</p>';
-  $('#soldTable').innerHTML = vendusMois.length ? tbl(vendusMois,'sold') : '<p class="muted">Pas encore de vente ce mois-ci.</p>';
-}
-function tbl(list, kind){
-  const head = kind==='open' ? ['Vélo','Coût','Annoncé','Marge attendue','Jours']
-                             : ['Vélo','Coût','Annoncé','Vendu','Écart','Marge'];
-  const body = list.map(b=> kind==='open'
-    ? `<tr><td>${b.nom||b.key}<br><span class="muted">${b.key}</span></td><td class="num">${eur(b.cout)}</td>
-       <td class="num">${eur(b.annonce)}</td><td class="num ${b.margeAttendue>=0?'pos':'neg'}">${eur(b.margeAttendue)}</td>
-       <td class="num">${b.jours??'—'}</td></tr>`
-    : `<tr><td>${b.nom||b.key}<br><span class="muted">${b.key}</span></td><td class="num">${eur(b.cout)}</td>
-       <td class="num">${b.annonce?eur(b.annonce):'—'}</td><td class="num">${eur(b.vendu)}</td>
-       <td class="num ${b.ecart<0?'neg':''}">${b.ecart?(b.ecart>0?'+':'')+eur(b.ecart):'au prix'}</td>
-       <td class="num ${b.margeReelle>=0?'pos':'neg'}">${eur(b.margeReelle)}</td></tr>`).join('');
-  return `<div class="scroll"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
-}
-
-/* =====================================================================
-   8. INTERFACE
-   ===================================================================== */
-function view(name){
-  ['voice','board','setup'].forEach(v=>{ $('#v-'+v).hidden = v!==name; });
-  $$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.view===name)));
-  $('#emptyState').hidden = !(name==='board' && !DATA);
-}
-$$('nav.tabs button').forEach(b=>b.onclick = ()=>view(b.dataset.view));
+$$('nav.tabs button').forEach(b=>b.onclick=()=>view(b.dataset.view));
 
 let toastT;
-function toast(msg){
+function toast(m){
   clearTimeout(toastT);
-  let el = $('.toast');
-  if(!el){ el = document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
-  el.textContent = msg;
-  toastT = setTimeout(()=>el.remove(), 3600);
+  let el=$('.toast'); if(!el){ el=document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent=m; toastT=setTimeout(()=>el.remove(),3600);
 }
-function setSync(state, label){
-  $('#sync').innerHTML = `<i class="dot ${state}"></i><span>${label}</span>`;
+function setSync(s,l){ $('#sync').innerHTML='<i class="dot '+s+'"></i><span>'+l+'</span>'; }
+const tagIdx=s=>({achete:1,enreparation:2,envente:3,vendu:4}[key(s)]||0);
+function renderAll(){ renderList(); renderBoard(); }
+
+function renderList(){
+  if(!DATA) return;
+  const V=DATA.velos;
+  const groups=[['tous','Tous',V],
+    ['atelier','Atelier',V.filter(b=>['achete','enreparation'].indexOf(key(b.statut))>=0)],
+    ['envente','En vente',V.filter(b=>key(b.statut)==='envente')],
+    ['vendu','Vendus',V.filter(b=>key(b.statut)==='vendu')]];
+  $('#filters').innerHTML=groups.map(g=>
+    '<button data-f="'+g[0]+'" aria-pressed="'+(FILTER===g[0])+'">'+g[1]+' '+g[2].length+'</button>').join('');
+  $$('#filters button').forEach(b=>b.onclick=()=>{ FILTER=b.dataset.f; renderList(); });
+  const found=groups.filter(g=>g[0]===FILTER)[0]||groups[0];
+  const list=found[2].slice().reverse();
+  $('#bikeList').innerHTML=list.length?list.map(card).join('')
+    :'<p class="empty">Aucun vélo ici.'+(V.length?'':'<br>Touche « Nouveau vélo » pour commencer.')+'</p>';
+  bindCards('#bikeList');
+}
+function bindCards(sel){ $$(sel+' .bike').forEach(el=>el.onclick=()=>openSheet(el.dataset.k)); }
+function card(b){
+  const sold=key(b.statut)==='vendu';
+  const known=sold||b.annonce>0;
+  const val=known?(sold?b.margeReelle:b.margeAttendue):b.cout;
+  const lab=known?(sold?'marge':'attendue'):'engagé';
+  return '<button class="bike" data-k="'+esc(b.key)+'">'
+    +'<div class="body"><div class="nom">'+esc(b.nom||'Sans nom')+'</div>'
+    +'<div class="sub">'+esc(b.key)+' · '+fr(b.dAchat)+(b.pieces?' · '+eur(b.pieces)+' de pièces':'')+'</div></div>'
+    +'<div class="amt"><div class="v num '+(known?(val>=0?'pos':'neg'):'')+'">'+eur(val)+'</div>'
+    +'<div class="l">'+lab+'</div></div>'
+    +'<span class="tag t'+tagIdx(b.statut)+'">'+esc(b.statut||'—')+'</span></button>';
 }
 
-$('#mic').onclick = ()=> listening ? rec.stop() : startMic();
-$('#btnType').onclick = ()=>{ const b=$('#typeBox'); b.hidden=!b.hidden; if(!b.hidden) $('#typed').focus(); };
-$('#btnTypeGo').onclick = ()=>{ const t=$('#typed').value.trim(); if(t){ $('#heard').textContent=t; $('#heard').classList.remove('ph'); handle(t); } };
-$('#typed').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#btnTypeGo').click(); });
-$('#btnDrop').onclick = ()=>{ PENDING=null; $('#confirm').hidden=true; };
-$('#btnSave').onclick = ()=>{ if(PENDING){ const a=PENDING; PENDING=null; $('#confirm').hidden=true; commit(a); } };
+/* ---------- fiche ---------- */
+function blankBike(){
+  return {__row:DATA.nextV,key:nextId(),nom:'',statut:'Acheté',dAchat:today(),achat:0,
+    dAnnonce:null,annonce:0,dVente:null,vendu:0,__new:true};
+}
+function openSheet(k){
+  const b=k?DATA.velos.filter(x=>x.key===k)[0]:blankBike();
+  if(!b) return;
+  DRAFT=Object.assign({},b);
+  $('#sheet').hidden=false; document.body.style.overflow='hidden';
+  $('#partsBlock').hidden=!!b.__new;
+  $('#sheetDelete').hidden=!!b.__new||READONLY;
+  $('#sheetSave').disabled=READONLY;
+  drawSheet();
+  $('#sheet').scrollTop=0;
+}
+function closeSheet(){ $('#sheet').hidden=true; document.body.style.overflow=''; DRAFT=null; }
+$('#sheetBack').onclick=closeSheet;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#sheet').hidden) closeSheet(); });
 
-$('#btnAuth').onclick = async ()=>{
-  const k = $('#appkey').value.trim();
+function field(id,label,type,val,unit){
+  const v=(val===0||val==null)?'':String(val);
+  return '<div class="field"><label for="'+id+'">'+label+'</label>'
+    +'<div class="inp"><input id="'+id+'" type="'+(type==='date'?'date':'text')+'"'
+    +(type==='money'?' inputmode="decimal"':'')+' value="'+esc(v)+'">'
+    +(unit?'<span class="unit">'+unit+'</span>':'')
+    +'<button class="clr" data-clr="'+id+'" aria-label="Effacer"'+(v?'':' hidden')+'>&times;</button>'
+    +'</div></div>';
+}
+function drawSheet(){
+  const b=DRAFT;
+  $('#sheetTitle').textContent=b.nom||(b.__new?'Nouveau vélo':b.key);
+  $('#sheetForm').innerHTML=
+    field('fNom','Marque et modèle','text',b.nom)
+    +'<div class="field"><label>Statut</label><div class="seg" id="fStatut">'
+    +STATUTS.map(s=>'<button type="button" data-s="'+s+'" aria-pressed="'+(s===b.statut)+'">'+s+'</button>').join('')
+    +'</div></div>'
+    +field('fDAchat','Date d’achat','date',iso(b.dAchat))
+    +field('fAchat','Prix d’achat','money',b.achat,'€')
+    +field('fDAnnonce','Date de mise en vente','date',iso(b.dAnnonce))
+    +field('fAnnonce','Prix annoncé','money',b.annonce,'€')
+    +field('fDVente','Date de vente','date',iso(b.dVente))
+    +field('fVendu','Prix de vente réel','money',b.vendu,'€');
+
+  bind('fNom','nom',v=>v);
+  bind('fDAchat','dAchat',fromIso); bind('fDAnnonce','dAnnonce',fromIso); bind('fDVente','dVente',fromIso);
+  bind('fAchat','achat',parseNum); bind('fAnnonce','annonce',parseNum); bind('fVendu','vendu',parseNum);
+  $$('#fStatut button').forEach(el=>el.onclick=()=>{ DRAFT.statut=el.dataset.s; syncStatusUI(); });
+  $$('#sheetForm .clr').forEach(el=>el.onclick=()=>{
+    const i=$('#'+el.dataset.clr); i.value=''; i.dispatchEvent(new Event('input')); i.focus();
+  });
+  syncStatusUI(); drawRecap(); drawParts();
+}
+function bind(id,prop,conv){
+  const el=$('#'+id); if(!el) return;
+  el.addEventListener('input',()=>{
+    DRAFT[prop]=conv(el.value);
+    const c=el.parentNode.querySelector('.clr'); if(c) c.hidden=!el.value;
+    if(prop==='nom') $('#sheetTitle').textContent=el.value||'Nouveau vélo';
+    autoStatus(prop); drawRecap();
+  });
+}
+function autoStatus(prop){
+  if(prop==='vendu'&&DRAFT.vendu>0&&DRAFT.statut!=='Vendu'){
+    DRAFT.statut='Vendu'; if(!DRAFT.dVente){ DRAFT.dVente=today(); $('#fDVente').value=iso(DRAFT.dVente); }
+    syncStatusUI();
+  }else if(prop==='annonce'&&DRAFT.annonce>0&&['Acheté','En réparation'].indexOf(DRAFT.statut)>=0){
+    DRAFT.statut='En vente'; if(!DRAFT.dAnnonce){ DRAFT.dAnnonce=today(); $('#fDAnnonce').value=iso(DRAFT.dAnnonce); }
+    syncStatusUI();
+  }
+}
+function syncStatusUI(){
+  $$('#fStatut button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.s===DRAFT.statut)));
+  const tag=$('#sheetTag'); tag.textContent=DRAFT.statut||'—'; tag.className='tag t'+tagIdx(DRAFT.statut);
+}
+function drawRecap(){
+  const b=DRAFT;
+  const parts=DATA.pieces.filter(p=>p.bike===b.key).reduce((a,p)=>a+p.qte*p.pu,0);
+  const cout=(b.achat||0)+parts;
+  const sold=b.vendu>0;
+  const marge=sold?b.vendu-cout:(b.annonce?b.annonce-cout:0);
+  $('#recap').innerHTML=
+    '<div><dt>Pièces</dt><dd class="num">'+eur(parts)+'</dd></div>'
+   +'<div><dt>Coût total</dt><dd class="num">'+eur(cout)+'</dd></div>'
+   +'<div><dt>'+(sold?'Marge réalisée':'Marge attendue')+'</dt><dd class="num '+(marge>=0?'pos':'neg')+'">'
+   +((b.annonce||sold)?eur(marge):'—')+'</dd></div>';
+}
+function drawParts(){
+  if(DRAFT.__new) return;
+  const list=DATA.pieces.filter(p=>p.bike===DRAFT.key);
+  $('#partsList').innerHTML=list.length?list.map(p=>
+    '<div class="part"><div class="p1"><div class="n">'+esc(p.nom||'Pièce')+'</div>'
+   +'<div class="d">'+p.qte+' × '+eur(p.pu)+' · '+fr(p.date)+'</div></div>'
+   +'<div class="amt num">'+eur(p.qte*p.pu)+'</div>'
+   +'<button class="del" data-r="'+p.__row+'" aria-label="Supprimer">&times;</button></div>').join('')
+   :'<div class="part"><div class="p1 muted">Aucune pièce pour ce vélo.</div></div>';
+  $$('#partsList .del').forEach(el=>el.onclick=()=>removePart(+el.dataset.r));
+}
+function removePart(row){
+  const i=DATA.pieces.map(p=>p.__row).indexOf(row); if(i<0) return;
+  DATA.pieces.splice(i,1); recompute(DATA);
+  push(clearRow('Pièces',row,DATA.colP));
+  drawParts(); drawRecap(); renderAll(); toast('Pièce supprimée');
+}
+$('#pAdd').onclick=()=>{
+  const nom=$('#pName').value.trim();
+  const qte=Math.max(1,Math.round(parseNum($('#pQte').value)||1));
+  const pu=parseNum($('#pPu').value);
+  if(!nom&&!pu){ toast('Indique au moins un nom et un prix.'); return; }
+  const p={__row:DATA.nextP++,bike:DRAFT.key,date:today(),nom:nom||'Pièce',qte:qte,pu:pu};
+  DATA.pieces.push(p); recompute(DATA); push(partCells(p,p.__row));
+  $('#pName').value=''; $('#pQte').value='1'; $('#pPu').value='';
+  drawParts(); drawRecap(); renderAll();
+};
+$('#sheetSave').onclick=()=>{
+  const b=DRAFT;
+  if(!b.nom&&!b.achat){ toast('Renseigne au moins un modèle ou un prix d’achat.'); return; }
+  if(b.__new){
+    const nb=Object.assign({},b); delete nb.__new;
+    nb.__row=DATA.nextV++; DATA.velos.push(nb);
+    recompute(DATA); push(cellsFor(nb,nb.__row)); toast('Vélo ajouté');
+  }else{
+    const t=DATA.velos.filter(x=>x.key===b.key)[0];
+    Object.assign(t,{nom:b.nom,statut:b.statut,dAchat:b.dAchat,achat:b.achat,
+      dAnnonce:b.dAnnonce,annonce:b.annonce,dVente:b.dVente,vendu:b.vendu});
+    recompute(DATA); push(cellsFor(t,t.__row)); toast('Modifications enregistrées');
+  }
+  closeSheet(); renderAll();
+};
+$('#sheetDelete').onclick=()=>{
+  const b=DRAFT;
+  if(!confirm('Supprimer '+(b.nom||b.key)+' et ses pièces ? Action définitive.')) return;
+  const edits=clearRow('Vélos',b.__row,DATA.colV);
+  DATA.pieces.filter(p=>p.bike===b.key).forEach(p=>{ clearRow('Pièces',p.__row,DATA.colP).forEach(e=>edits.push(e)); });
+  DATA.pieces=DATA.pieces.filter(p=>p.bike!==b.key);
+  DATA.velos=DATA.velos.filter(x=>x.key!==b.key);
+  recompute(DATA); push(edits); closeSheet(); renderAll(); toast('Vélo supprimé');
+};
+$('#fab').onclick=()=>openSheet(null);
+
+/* ---------- tableau de bord ---------- */
+function renderBoard(){
+  if(!DATA) return;
+  const now=today(), V=DATA.velos;
+  const sameMonth=d=>d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  const vendusMois=V.filter(b=>sameMonth(b.dVente));
+  const enVente=V.filter(b=>key(b.statut)==='envente');
+  const realise=vendusMois.reduce((a,b)=>a+b.margeReelle,0);
+  const potentiel=enVente.reduce((a,b)=>a+b.margeAttendue,0);
+  const objectif=DATA.objectif||1000, reste=Math.max(0,objectif-realise);
+  const vendus=V.filter(b=>b.vendu>0);
+  const margeMoy=vendus.length?vendus.reduce((a,b)=>a+b.margeReelle,0)/vendus.length:0;
+  const immo=V.filter(b=>!b.vendu).reduce((a,b)=>a+b.cout,0);
+  const dl=vendus.filter(b=>b.jours!=null);
+  const delai=dl.length?dl.reduce((a,b)=>a+b.jours,0)/dl.length:0;
+
+  $('#monthLabel').textContent=MONTHS[now.getMonth()];
+  $('#margeNow').textContent=eur(realise);
+  $('#goalTxt').textContent=eur(objectif);
+  $('#pctTxt').textContent=Math.round(realise/objectif*100)+' %';
+  const step=objectif/10, cells=$('#cells'); cells.innerHTML='';
+  for(let i=0;i<10;i++){
+    const lo=i*step;
+    const d=Math.min(1,Math.max(0,(realise-lo)/step));
+    const o=Math.min(1,Math.max(0,(realise+potentiel-lo)/step));
+    const el=document.createElement('div'); el.className='cell';
+    el.innerHTML='<i class="o" style="width:'+(o*100)+'%"></i><i class="d" style="width:'+(d*100)+'%"></i>';
+    cells.appendChild(el);
+  }
+  const fin=new Date(now.getFullYear(),now.getMonth()+1,0);
+  const j=Math.max(0,Math.round((fin-now)/864e5));
+  let v;
+  if(!V.length) v='Aucun vélo enregistré. Ajoute le premier depuis l’onglet Vélos.';
+  else if(reste===0) v='Objectif atteint. Tout ce qui part maintenant est du bonus.';
+  else if(margeMoy>0){
+    const nb=Math.ceil(reste/margeMoy);
+    v='Il te manque <b>'+eur(reste)+'</b>, soit <b>'+nb+' vélo'+(nb>1?'s':'')+'</b> à ta marge moyenne de '+eur(margeMoy)+'. '
+     +(potentiel>=reste?'Ce qui est déjà en vente suffit, au prix annoncé.'
+                       :'Les annonces en ligne ne couvrent que '+eur(potentiel)+'.')
+     +' Reste '+j+' jour'+(j>1?'s':'')+'.';
+  } else v='Il te manque <b>'+eur(reste)+'</b>. Pas encore de vente : la marge moyenne se calculera à la première.';
+  $('#verdict').innerHTML=v;
+
+  $('#stats').innerHTML=[
+    ['Vendus ce mois',vendusMois.length],
+    ['Encaissé',eur(vendusMois.reduce((a,b)=>a+b.vendu,0))],
+    ['Marge moyenne',margeMoy?eur(margeMoy):'—'],
+    ['Argent immobilisé',eur(immo)],
+    ['Délai moyen',delai?Math.round(delai)+' j':'—']
+  ].map(s=>'<div class="stat"><dt>'+s[0]+'</dt><dd class="num">'+s[1]+'</dd></div>').join('');
+
+  $('#openList').innerHTML=enVente.length?enVente.map(card).join(''):'<p class="empty">Aucune annonce en ligne.</p>';
+  $('#soldList').innerHTML=vendusMois.length?vendusMois.map(card).join(''):'<p class="empty">Pas encore de vente ce mois-ci.</p>';
+  bindCards('#openList'); bindCards('#soldList');
+}
+
+/* ==================== RÉGLAGES ==================== */
+$('#btnAuth').onclick=async()=>{
+  const k=$('#appkey').value.trim();
   if(!k){ toast('Colle d’abord ton App key.'); return; }
-  store.set('appKey', k); store.set('path', $('#fpath').value.trim()||'/Suivi_velos_electriques.xlsx');
+  store.set('appKey',k); store.set('path',$('#fpath').value.trim()||'/Suivi_velos_electriques.xlsx');
   try{ await DBX.begin(); $('#setupCode').hidden=false; $('#authcode').focus(); }
-  catch(e){ toast('Impossible d’ouvrir la page Dropbox.'); }
+  catch(e){ toast('Impossible d’ouvrir Dropbox.'); }
 };
-$('#btnCancelCode').onclick = ()=>{ $('#setupCode').hidden=true; };
-$('#btnCode').onclick = async ()=>{
-  try{
-    await DBX.finish($('#authcode').value);
-    $('#setupCode').hidden=true; $('#setupIntro').hidden=true;
-    await load();
-  }catch(e){ toast(e.message); }
+$('#btnCancelCode').onclick=()=>$('#setupCode').hidden=true;
+$('#btnCode').onclick=async()=>{
+  try{ await DBX.finish($('#authcode').value); $('#setupCode').hidden=true; await load(); view('board'); }
+  catch(e){ toast(e.message); }
 };
-$('#btnReload').onclick = ()=>load();
-$('#btnLogout').onclick = ()=>{ store.del('refresh'); DBX.token=null; toast('Dropbox déconnecté.'); showSetup(); };
-$('#btnLocal').onclick = ()=>$('#localFile').click();
-$('#localFile').addEventListener('change', e=>{
-  const f = e.target.files[0]; if(!f) return;
-  const fr = new FileReader();
-  fr.onload = ev => {
-    try{ BUF = ev.target.result; DATA = parseBook(BUF); renderBoard(); view('board');
-         setSync('busy','fichier local, lecture seule'); }
-    catch(err){ toast(err.message); }
-  };
-  fr.readAsArrayBuffer(f);
+$('#btnReload').onclick=()=>load();
+$('#sync').onclick=()=>{ if(!READONLY) load(); };
+$('#btnLogout').onclick=()=>{ store.del('refresh'); DBX.token=null; DATA=null; showSetup(); view('setup'); toast('Dropbox déconnecté.'); };
+$('#btnLocal').onclick=()=>$('#localFile').click();
+$('#localFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ try{ BUF=ev.target.result; DATA=parseBook(BUF); READONLY=true;
+      renderAll(); view('board'); setSync('busy','fichier local, lecture seule'); }
+    catch(err){ toast(err.message); } };
+  r.readAsArrayBuffer(f);
 });
-
 function showSetup(){
-  const on = !!DBX.refresh;
-  $('#setupIntro').hidden = on; $('#setupOk').hidden = !on;
-  if(on) $('#okPath').textContent = 'Fichier suivi : ' + DBX.path;
-  if(!on){ $('#appkey').value = DBX.appKey||''; $('#fpath').value = DBX.path; }
+  const on=!!DBX.refresh;
+  $('#setupIntro').hidden=on; $('#setupOk').hidden=!on;
+  if(on) $('#okPath').textContent='Fichier suivi : '+DBX.path;
+  else { $('#appkey').value=DBX.appKey||''; $('#fpath').value=DBX.path; }
 }
 async function load(){
   showSetup();
   if(!DBX.refresh){ setSync('off','non connecté'); view('setup'); return; }
   setSync('busy','lecture…');
   try{
-    BUF = await DBX.download();
-    DATA = parseBook(BUF);
-    renderBoard();
-    setSync('on','à jour');
+    BUF=await DBX.download(); DATA=parseBook(BUF); READONLY=false;
+    renderAll(); setSync('on','à jour');
+    view(store.get('view')||'board');
   }catch(e){ setSync('off','erreur'); toast(e.message); view('setup'); }
 }
-
-renderLog();
-view(DBX.refresh ? 'voice' : 'setup');
+view(DBX.refresh?(store.get('view')||'board'):'setup');
 load();
 </script>
 </body>
