@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EDEB">
+<title>Atelier vélos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --paper:#E9EDEB; --surface:#fff; --ink:#16211D; --soft:#61716B; --line:#CFD9D4;
+    --done:#1F6F4A; --open:#C0851F; --open-bg:#F0E1C2; --loss:#A33B2A; --shop:#4A6FA5;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
+  body{font-family:"Instrument Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400}
+  .num{font-variant-numeric:tabular-nums}
+  h1{font-size:23px;font-weight:400;margin:0}
+  h2{font-size:13px;font-weight:500;color:var(--soft);margin:22px 0 9px}
+  button{font:inherit;cursor:pointer;color:inherit}
+  :focus-visible{outline:2px solid var(--done);outline-offset:2px}
+  [hidden]{display:none!important}
+  .muted{color:var(--soft);font-size:14px}
+  a{color:var(--done)}
+
+  .wrap{max-width:820px;margin:0 auto;padding:14px 16px calc(96px + env(safe-area-inset-bottom))}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 16px}
+  .sync{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px;background:none;border:none;padding:4px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+  .dot.on{background:var(--done)} .dot.busy{background:var(--open)} .dot.off{background:var(--loss)}
+
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(3,1fr);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{background:none;border:none;padding:12px 4px 14px;color:var(--soft);font-size:13px}
+  nav.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 2px 0 var(--done)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:10px}
+  .card h2:first-child{margin-top:0}
+  .btn{background:var(--ink);color:#fff;border:none;border-radius:5px;padding:11px 17px;font-size:15px}
+  .btn.go{background:var(--done)}
+  .btn.ghost{background:none;border:1px solid var(--line)}
+  .btn.danger{background:none;border:1px solid var(--line);color:var(--loss)}
+  .btn:disabled{opacity:.4}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .bar{display:flex;gap:8px;margin-bottom:16px}
+  .bar .btn{flex:1;padding:10px 8px;font-size:14px}
+  .bar .btn.go{background:var(--done);color:#fff}
+  .warnbox{background:#FFF6E5;border:1px solid var(--open);border-radius:6px;padding:12px 14px;
+    font-size:14px;margin-bottom:12px;color:#6b4a0d}
+
+  .field{margin-bottom:13px}
+  .field > label{display:block;font-size:13px;color:var(--soft);margin-bottom:4px}
+  .inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:5px;background:var(--surface);
+       overflow:hidden;transition:border-color .12s}
+  .inp:focus-within{border-color:var(--done)}
+  .inp input{flex:1;min-width:0;font:inherit;border:none;background:none;color:inherit;padding:11px 12px;outline:none}
+  .inp input::-webkit-calendar-picker-indicator{opacity:.5}
+  .inp .unit{color:var(--soft);padding-right:10px;font-size:15px}
+  .clr{border:none;background:none;color:var(--soft);font-size:20px;line-height:1;padding:8px 11px;flex:none}
+  .seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .seg button{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:10px 6px;font-size:14px;color:var(--soft)}
+  .seg button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:var(--paper);font-weight:500}
+
+  .filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:99px;
+    padding:7px 14px;font-size:14px;color:var(--soft)}
+  .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .bike{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;
+    padding:13px 15px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+  .bike:active{background:var(--paper)}
+  .bike .body{flex:1;min-width:0}
+  .bike .nom{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bike .sub{font-size:13px;color:var(--soft);margin-top:1px}
+  .bike .amt{text-align:right;flex:none}
+  .bike .amt .v{font-size:17px}
+  .bike .amt .l{font-size:11px;color:var(--soft)}
+  .tag{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--soft);white-space:nowrap}
+  .tag.t1{border-color:var(--shop);color:var(--shop)}
+  .tag.t2{border-color:var(--soft)}
+  .tag.t3{border-color:var(--open);color:var(--open)}
+  .tag.t4{border-color:var(--done);color:var(--done)}
+  .pos{color:var(--done)} .neg{color:var(--loss)}
+  .fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:25;
+    background:var(--done);color:#fff;border:none;border-radius:99px;padding:14px 20px;font-size:15px;
+    box-shadow:0 3px 10px rgba(22,33,29,.22)}
+
+  .sheet{position:fixed;inset:0;background:var(--paper);z-index:40;overflow-y:auto;
+    padding:0 0 calc(92px + env(safe-area-inset-bottom))}
+  .sheet .inner{max-width:820px;margin:0 auto;padding:0 16px}
+  .sheet-top{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);z-index:2;
+    padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .sheet-top .back{border:none;background:none;font-size:26px;padding:0 6px;line-height:1}
+  .sheet-top .ttl{flex:1;min-width:0;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .recap{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:6px;overflow:hidden;margin:14px 0 20px}
+  .recap div{background:var(--surface);padding:11px 12px}
+  .recap dt{font-size:12px;color:var(--soft)}
+  .recap dd{margin:2px 0 0;font-size:19px}
+  .parts{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .part{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .part:last-child{border-bottom:none}
+  .part .p1{flex:1;min-width:0}
+  .part .p1 .n{font-size:15px}
+  .part .p1 .d{font-size:12px;color:var(--soft)}
+  .part .amt{font-size:15px}
+  .part .del{border:none;background:none;color:var(--soft);font-size:19px;padding:4px 6px;line-height:1}
+  .addpart{display:grid;grid-template-columns:1fr 58px 92px auto;gap:7px;align-items:end;margin-top:10px}
+  .addpart .field{margin:0}
+  .sheet-actions{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    padding:11px 16px calc(11px + env(safe-area-inset-bottom));display:flex;gap:9px;z-index:41}
+  .sheet-actions .btn.go{flex:1}
+
+  .big{font-size:clamp(44px,12vw,70px);line-height:.95;letter-spacing:-.02em}
+  .gauge-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .goal{text-align:right;font-size:14px;color:var(--soft)}
+  .battery{margin-top:18px;display:flex;gap:5px}
+  .cells{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:3px;background:var(--paper);
+    border:1px solid var(--line);border-radius:3px;padding:3px;height:40px}
+  .cell{background:#fff;border-radius:1px;position:relative;overflow:hidden}
+  .cell i{position:absolute;inset:0 auto 0 0}
+  .cell i.d{background:var(--done)}
+  .cell i.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-bg) 3px 7px)}
+  .nub{width:6px;align-self:center;height:17px;background:var(--line);border-radius:0 2px 2px 0}
+  .legend{display:flex;gap:16px;margin-top:11px;font-size:13px;color:var(--soft);flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .chip{width:10px;height:10px;border-radius:2px}
+  .chip.d{background:var(--done)}
+  .chip.o{background:repeating-linear-gradient(135deg,var(--open) 0 3px,var(--open-bg) 3px 7px)}
+  .verdict{margin:18px 0 0;padding-top:15px;border-top:1px solid var(--line);font-size:17px}
+  .verdict b{font-weight:500}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .stat{background:var(--surface);padding:12px 14px}
+  .stat dt{font-size:12px;color:var(--soft)}
+  .stat dd{margin:2px 0 0;font-size:22px}
+
+  ol.steps{padding-left:19px;margin:0}
+  ol.steps li{margin-bottom:9px;font-size:15px}
+  code{background:var(--paper);padding:1px 5px;border-radius:3px;font-size:14px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom));
+    background:var(--ink);color:#fff;padding:11px 17px;border-radius:6px;font-size:14px;z-index:60;max-width:92vw;text-align:center}
+  .empty{text-align:center;color:var(--soft);padding:32px 16px;font-size:15px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="serif" id="title">Atelier vélos</h1>
+    <button class="sync" id="sync"><i class="dot"></i><span>hors ligne</span></button>
+  </header>
+
+  <div class="bar" id="bar" hidden>
+    <button class="btn ghost" id="btnPull">Charger depuis Dropbox</button>
+    <button class="btn" id="btnPush">Envoyer <span id="pushN"></span></button>
+  </div>
+
+  <section id="v-list" hidden>
+    <div class="filters" id="filters"></div>
+    <div id="bikeList"></div>
+  </section>
+
+  <section id="v-board" hidden>
+    <div class="card">
+      <div class="gauge-head">
+        <div>
+          <div class="big serif num" id="margeNow">0 €</div>
+          <div class="muted" style="margin-top:3px">de marge encaissée en <span id="monthLabel"></span></div>
+        </div>
+        <div class="goal">objectif <b class="num" id="goalTxt">1 000 €</b><br><span class="num" id="pctTxt">0 %</span> atteint</div>
+      </div>
+      <div class="battery"><div class="cells" id="cells"></div><div class="nub"></div></div>
+      <div class="legend"><span><i class="chip d"></i>encaissé</span><span><i class="chip o"></i>en vente, au prix annoncé</span></div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+    <h2>Le mois en chiffres</h2>
+    <dl class="stats" id="stats"></dl>
+    <h2>Ce qui est en vente</h2>
+    <div id="openList"></div>
+    <h2>Vendus ce mois</h2>
+    <div id="soldList"></div>
+  </section>
+
+  <section id="v-setup" hidden>
+    <div class="card" id="setupIntro">
+      <h2>Connecter Dropbox</h2>
+      <p class="muted">À faire une fois. Cette page ne voit jamais ton mot de passe, seulement un accès limité à un dossier.</p>
+      <ol class="steps">
+        <li>Sur <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">dropbox.com/developers/apps</a> : <b>Create app</b>, <b>Scoped access</b>, <b>App folder</b>.</li>
+        <li>Onglet <b>Permissions</b> : <code>files.content.read</code> et <code>files.content.write</code>, puis <b>Submit</b>.</li>
+        <li>Onglet <b>Settings</b> : bouton <b>Generate</b> (section OAuth 2) pour créer le dossier, puis copie l’<b>App key</b>.</li>
+        <li>Dépose l’Excel dans <code>Applications / Atelier velos</code>.</li>
+      </ol>
+      <div class="field" style="margin-top:14px"><label for="appkey">App key</label>
+        <div class="inp"><input id="appkey" type="text" autocomplete="off" spellcheck="false" placeholder="a1b2c3d4e5f6g7h"></div></div>
+      <div class="field"><label for="fpath">Nom du fichier</label>
+        <div class="inp"><input id="fpath" type="text" spellcheck="false" value="/Suivi_velos_electriques.xlsx"></div></div>
+      <button class="btn go" id="btnAuth">Autoriser l’accès</button>
+    </div>
+
+    <div class="card" id="setupCode" hidden>
+      <h2>Code d’autorisation</h2>
+      <p class="muted">Dropbox affiche un code dans l’autre onglet. Colle-le ici.</p>
+      <div class="field"><div class="inp"><input id="authcode" type="text" autocomplete="off" spellcheck="false"></div></div>
+      <div class="row"><button class="btn go" id="btnCode">Terminer</button><button class="btn ghost" id="btnCancelCode">Annuler</button></div>
+    </div>
+
+    <div class="card" id="setupOk" hidden>
+      <h2>Connexion active</h2>
+      <p class="muted" id="okPath"></p>
+      <div class="row"><button class="btn ghost" id="btnReload">Recharger depuis Dropbox</button>
+        <button class="btn danger" id="btnLogout">Déconnecter</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Ouvrir un fichier local</h2>
+      <p class="muted">Lecture seule : les modifications ont besoin de Dropbox pour être enregistrées.</p>
+      <button class="btn ghost" id="btnLocal">Choisir un fichier</button>
+      <input type="file" id="localFile" accept=".xlsx,.xlsm" hidden>
+    </div>
+
+    <div class="card">
+      <h2>Vérifier le fichier</h2>
+      <p class="muted">Télécharge sur cet appareil le fichier tel qu’il est actuellement dans Dropbox, pour l’ouvrir et contrôler son contenu.</p>
+      <button class="btn ghost" id="btnGrab">Télécharger une copie</button>
+    </div>
+  </section>
+</div>
+
+<button class="fab" id="fab" hidden>+ Nouveau vélo</button>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-view="board" aria-selected="true">Tableau de bord</button>
+  <button role="tab" data-view="list" aria-selected="false">Vélos</button>
+  <button role="tab" data-view="setup" aria-selected="false">Réglages</button>
+</nav>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-top">
+    <button class="back" id="sheetBack" aria-label="Retour">&#8249;</button>
+    <div class="ttl" id="sheetTitle"></div>
+    <span class="tag" id="sheetTag"></span>
+  </div>
+  <div class="inner">
+    <dl class="recap" id="recap"></dl>
+    <div id="sheetForm"></div>
+    <div id="partsBlock">
+      <h2>Pièces</h2>
+      <div class="parts" id="partsList"></div>
+      <div class="addpart">
+        <div class="field"><label for="pName">Pièce</label><div class="inp"><input id="pName" type="text" placeholder="Batterie"></div></div>
+        <div class="field"><label for="pQte">Qté</label><div class="inp"><input id="pQte" type="text" inputmode="numeric" value="1"></div></div>
+        <div class="field"><label for="pPu">Prix unit.</label><div class="inp"><input id="pPu" type="text" inputmode="decimal"><span class="unit">€</span></div></div>
+        <button class="btn" id="pAdd" style="padding:11px 14px" aria-label="Ajouter la pièce">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn danger" id="sheetDelete">Supprimer</button>
+    <button class="btn go" id="sheetSave">Enregistrer</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const MONTHS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const STATUTS=['Acheté','En réparation','En vente','Vendu'];
+const norm=s=>(s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const key=s=>norm(s).replace(/[^a-z0-9]/g,'');
+const eur=n=>Math.round(n||0).toLocaleString('fr-FR')+' €';
+const num=v=>(typeof v==='number'&&isFinite(v))?v:0;
+const today=()=>new Date();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const parseNum=s=>{const v=parseFloat(String(s==null?'':s).replace(',','.').replace(/[^\d.-]/g,''));return isFinite(v)?v:0;};
+const iso=d=>d?new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10):'';
+const fromIso=s=>{ if(!s) return null; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); };
+const fr=d=>d?d.toLocaleDateString('fr-FR'):'—';
+
+const store={
+  get(k){ try{return JSON.parse(localStorage.getItem('velo.'+k));}catch(e){return null;} },
+  set(k,v){ try{localStorage.setItem('velo.'+k,JSON.stringify(v));}catch(e){} },
+  del(k){ try{localStorage.removeItem('velo.'+k);}catch(e){} }
+};
+
+let DATA=null, BUF=null, READONLY=false, FILTER='tous', DRAFT=null;
+let PENDING=[];
+
+/* ==================== DROPBOX ==================== */
+const DBX={
+  get appKey(){return store.get('appKey');},
+  get path(){return store.get('path')||'/Suivi_velos_electriques.xlsx';},
+  get refresh(){return store.get('refresh');},
+  token:null, exp:0,
+  async begin(){
+    const ver=[...crypto.getRandomValues(new Uint8Array(48))].map(b=>('0'+b.toString(16)).slice(-2)).join('');
+    store.set('verifier',ver);
+    const dg=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver));
+    const ch=btoa(String.fromCharCode.apply(null,new Uint8Array(dg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const u=new URL('https://www.dropbox.com/oauth2/authorize');
+    u.searchParams.set('client_id',DBX.appKey); u.searchParams.set('response_type','code');
+    u.searchParams.set('token_access_type','offline');
+    u.searchParams.set('code_challenge',ch); u.searchParams.set('code_challenge_method','S256');
+    window.open(u.toString(),'_blank','noopener');
+  },
+  async finish(code){
+    const body=new URLSearchParams({code:code.trim(),grant_type:'authorization_code',
+      client_id:DBX.appKey,code_verifier:store.get('verifier')||''});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok) throw new Error('Code refusé par Dropbox. Relance l’autorisation.');
+    const j=await r.json();
+    DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000;
+    if(j.refresh_token) store.set('refresh',j.refresh_token);
+    store.del('verifier');
+  },
+  async auth(){
+    if(DBX.token&&Date.now()<DBX.exp) return DBX.token;
+    if(!DBX.refresh) throw new Error('Dropbox n’est pas connecté.');
+    const body=new URLSearchParams({grant_type:'refresh_token',refresh_token:DBX.refresh,client_id:DBX.appKey});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok){ store.del('refresh'); throw new Error('Connexion Dropbox expirée. Reconnecte-toi dans Réglages.'); }
+    const j=await r.json(); DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000; return DBX.token;
+  },
+  async download(){
+    const t=await DBX.auth();
+    const r=await fetch('https://content.dropboxapi.com/2/files/download',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Dropbox-API-Arg':JSON.stringify({path:DBX.path})}});
+    if(r.status===409) throw new Error('Fichier introuvable : '+DBX.path);
+    if(!r.ok) throw new Error('Téléchargement impossible ('+r.status+').');
+    return await r.arrayBuffer();
+  },
+  async upload(buf,path){
+    const t=await DBX.auth();
+    const r=await fetch('https://content.dropboxapi.com/2/files/upload',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Content-Type':'application/octet-stream',
+        'Dropbox-API-Arg':JSON.stringify({path:path||DBX.path,mode:'overwrite',mute:true})},
+       body:new Blob([buf],{type:'application/octet-stream'})});
+    if(!r.ok) throw new Error('Enregistrement refusé par Dropbox ('+r.status+').');
+  },
+  backupPath(){ const p=DBX.path; const i=p.lastIndexOf('/');
+    return p.slice(0,i+1)+'Sauvegarde_'+p.slice(i+1); }
+};
+
+/* ==================== LECTURE ==================== */
+const COLS_V={identifiant:'id',marqueetmodele:'nom',datedachat:'dAchat',prixdachat:'achat',statut:'statut',
+  datedemiseenvente:'dAnnonce',prixannonce:'annonce',datedevente:'dVente',prixdeventereel:'vendu'};
+const COLS_P={identifiantduvelo:'id',datedachat:'date',piece:'piece',fournisseur:'fournisseur',
+  quantite:'qte',prixunitaire:'pu',total:'total'};
+
+function sheetOf(wb,w){ const k=key(w);
+  return wb.SheetNames.find(n=>key(n)===k)||wb.SheetNames.find(n=>key(n).indexOf(k.slice(0,4))===0); }
+function grid(wb,n){ const s=sheetOf(wb,n);
+  return s?XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,raw:true,defval:null,blankrows:true}):[]; }
+function mapGrid(raw,map){
+  if(!raw.length) return {rows:[],idx:{}};
+  const head=(raw[0]||[]).map(key), idx={};
+  head.forEach((h,i)=>{ if(map[h]!==undefined) idx[map[h]]=i; });
+  return {rows:raw.slice(1).map((r,i)=>{const o={__row:i+2}; for(const k in idx) o[k]=r?r[idx[k]]:null; return o;}),idx};
+}
+function toDate(v){
+  if(v instanceof Date) return v;
+  if(typeof v==='number') return new Date(Date.UTC(1899,11,30+v));
+  if(typeof v==='string'){ const d=new Date(v); return isNaN(d)?null:d; }
+  return null;
+}
+function parseBook(buf){
+  const wb=XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true});
+  const V=mapGrid(grid(wb,'Vélos'),COLS_V), P=mapGrid(grid(wb,'Pièces'),COLS_P);
+  if(V.idx.id===undefined) throw new Error('Onglet « Vélos » introuvable ou en-têtes modifiés.');
+  const velos=V.rows.filter(b=>b.id!=null&&String(b.id).trim()!=='').map(b=>({
+    __row:b.__row, key:String(b.id).trim(), nom:b.nom||'', statut:(b.statut||'').trim(),
+    dAchat:toDate(b.dAchat), achat:num(b.achat), dAnnonce:toDate(b.dAnnonce), annonce:num(b.annonce),
+    dVente:toDate(b.dVente), vendu:num(b.vendu)}));
+  const pieces=P.rows.filter(p=>p.id!=null&&String(p.id).trim()!=='').map(p=>({
+    __row:p.__row, bike:String(p.id).trim(), date:toDate(p.date), nom:p.piece||'',
+    qte:num(p.qte)||1, pu:num(p.pu)}));
+  let objectif=1000;
+  const par=grid(wb,'Paramètres');
+  for(let i=0;i<par.length;i++){
+    const r=par[i];
+    if(r&&r[0]&&norm(r[0]).indexOf('objectif')>=0&&typeof r[1]==='number'){ objectif=r[1]; break; }
+  }
+  const d={velos,pieces,objectif,colV:V.idx,colP:P.idx,
+    nextV:(velos.length?Math.max.apply(null,velos.map(b=>b.__row)):1)+1,
+    nextP:(pieces.length?Math.max.apply(null,pieces.map(p=>p.__row)):1)+1};
+  recompute(d); return d;
+}
+function recompute(d){
+  const cost={};
+  d.pieces.forEach(p=>{ cost[p.bike]=(cost[p.bike]||0)+p.qte*p.pu; });
+  d.velos.forEach(b=>{
+    b.pieces=cost[b.key]||0;
+    b.cout=b.achat+b.pieces;
+    b.margeAttendue=b.annonce?b.annonce-b.cout:0;
+    b.margeReelle=b.vendu?b.vendu-b.cout:0;
+    b.jours=b.dAchat?Math.round(((b.dVente||today())-b.dAchat)/864e5):null;
+  });
+}
+
+/* ==================== ÉCRITURE XLSX ==================== */
+const XLNS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const XMLDECL='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n';
+const colLetter=i=>{ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
+const serial=v=>{ const d=(v instanceof Date)?v:fromIso(v);
+  return Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/864e5); };
+
+async function writeCells(buf,edits){
+  const zip=await JSZip.loadAsync(buf), dp=new DOMParser(), sz=new XMLSerializer();
+  const wbDoc=dp.parseFromString(await zip.file('xl/workbook.xml').async('string'),'application/xml');
+  const relDoc=dp.parseFromString(await zip.file('xl/_rels/workbook.xml.rels').async('string'),'application/xml');
+  const target={};
+  [...wbDoc.getElementsByTagName('sheet')].forEach(s=>{
+    const rid=s.getAttribute('r:id')||s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const rel=[...relDoc.getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid);
+    if(rel) target[key(s.getAttribute('name'))]='xl/'+rel.getAttribute('Target').replace(/^\/?xl\//,'');
+  });
+  const by={}; edits.forEach(e=>{ (by[key(e.sheet)]=by[key(e.sheet)]||[]).push(e); });
+  for(const k in by){
+    const f=target[k]; if(!f) throw new Error('Onglet introuvable : '+k);
+    const doc=dp.parseFromString(await zip.file(f).async('string'),'application/xml');
+    const data=doc.getElementsByTagName('sheetData')[0];
+    by[k].forEach(e=>setCell(doc,data,e));
+    zip.file(f,XMLDECL+sz.serializeToString(doc));
+  }
+  let calc=wbDoc.getElementsByTagName('calcPr')[0];
+  if(!calc){ calc=wbDoc.createElementNS(XLNS,'calcPr'); wbDoc.documentElement.appendChild(calc); }
+  calc.setAttribute('fullCalcOnLoad','1');
+  zip.file('xl/workbook.xml',XMLDECL+sz.serializeToString(wbDoc));
+  return await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+}
+function setCell(doc,data,e){
+  const L=colLetter(e.col), ref=L+e.row;
+  let row=[...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')===e.row);
+  if(!row){
+    row=doc.createElementNS(XLNS,'row'); row.setAttribute('r',String(e.row));
+    const a=[...data.getElementsByTagName('row')].find(r=>+r.getAttribute('r')>e.row);
+    data.insertBefore(row,a||null);
+  }
+  let c=[...row.getElementsByTagName('c')].find(x=>x.getAttribute('r')===ref);
+  if(!c){
+    c=doc.createElementNS(XLNS,'c'); c.setAttribute('r',ref);
+    const a=[...row.getElementsByTagName('c')].find(x=>{
+      const l=x.getAttribute('r').replace(/\d+/,'');
+      return l.length>L.length||(l.length===L.length&&l>L);
+    });
+    row.insertBefore(c,a||null);
+  }
+  while(c.firstChild) c.removeChild(c.firstChild);
+  c.removeAttribute('t');
+  if(e.kind==='clear') return;
+  if(e.kind==='text'){
+    c.setAttribute('t','inlineStr');
+    const is=doc.createElementNS(XLNS,'is'), t=doc.createElementNS(XLNS,'t');
+    t.setAttribute('xml:space','preserve'); t.appendChild(doc.createTextNode(String(e.value)));
+    is.appendChild(t); c.appendChild(is);
+  }else{
+    const v=doc.createElementNS(XLNS,'v');
+    v.appendChild(doc.createTextNode(String(e.kind==='date'?serial(e.value):e.value)));
+    c.appendChild(v);
+  }
+}
+
+/* ==================== FILE D'ATTENTE ==================== */
+function queue(edits,label){
+  if(!edits||!edits.length) return;
+  if(READONLY){ toast('Fichier local : lecture seule.'); return; }
+  PENDING.push({label:label||'Modification',edits:edits});
+  store.set('pending',PENDING); saveLocal(); updateBar();
+}
+function saveLocal(){
+  if(!DATA) return;
+  store.set('data',{
+    velos:DATA.velos.map(b=>Object.assign({},b,{dAchat:iso(b.dAchat),dAnnonce:iso(b.dAnnonce),dVente:iso(b.dVente)})),
+    pieces:DATA.pieces.map(p=>Object.assign({},p,{date:iso(p.date)})),
+    objectif:DATA.objectif,colV:DATA.colV,colP:DATA.colP,nextV:DATA.nextV,nextP:DATA.nextP});
+}
+function restoreLocal(){
+  const d=store.get('data');
+  if(!d||!d.velos||!d.colV) return null;
+  d.velos.forEach(b=>{ b.dAchat=fromIso(b.dAchat); b.dAnnonce=fromIso(b.dAnnonce); b.dVente=fromIso(b.dVente); });
+  d.pieces.forEach(p=>{ p.date=fromIso(p.date); });
+  recompute(d); return d;
+}
+function updateBar(){
+  const n=PENDING.length;
+  $('#bar').hidden=!DBX.refresh;
+  $('#pushN').textContent=n?'('+n+')':'';
+  $('#btnPush').className='btn'+(n?' go':' ghost');
+  $('#btnPush').disabled=!n;
+  if(n) setSync('busy',n+' à envoyer');
+  else setSync(DATA?'on':'off',DATA?'à jour':'non connecté');
+}
+function checkBook(buf){
+  let wb;
+  try{ wb=XLSX.read(new Uint8Array(buf),{type:'array'}); }
+  catch(e){ throw new Error('Classeur illisible : opération annulée, rien n’a été envoyé.'); }
+  if(!sheetOf(wb,'Vélos')||!sheetOf(wb,'Pièces'))
+    throw new Error('Classeur incomplet (onglets Vélos ou Pièces absents) : rien n’a été envoyé.');
+}
+async function sendAll(){
+  if(!PENDING.length){ toast('Aucune modification à envoyer.'); return; }
+  $('#btnPush').disabled=true; setSync('busy','envoi…');
+  try{
+    const remote=await DBX.download();
+    checkBook(remote);
+    await DBX.upload(remote,DBX.backupPath());
+    let flat=[]; PENDING.forEach(p=>{ flat=flat.concat(p.edits); });
+    const out=await writeCells(remote,flat);
+    checkBook(out);
+    await DBX.upload(out);
+    BUF=out; PENDING=[]; store.set('pending',PENDING);
+    DATA=parseBook(out); saveLocal(); renderAll(); updateBar();
+    toast('Excel mis à jour dans Dropbox');
+  }catch(e){
+    setSync('off','envoi impossible');
+    toast(e.message||'Envoi impossible.');
+    $('#btnPush').disabled=false;
+  }
+}
+async function grabCopy(){
+  try{
+    const b=await DBX.download();
+    const url=URL.createObjectURL(new Blob([b],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    const a=document.createElement('a'); a.href=url; a.download='Suivi_velos_electriques.xlsx';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  }catch(e){ toast(e.message); }
+}
+
+/* ==================== CELLULES ==================== */
+function nextId(){
+  const n=DATA.velos.reduce((m,b)=>{const x=String(b.key).match(/(\d+)/);return x?Math.max(m,+x[1]):m;},0);
+  return 'V'+String(n+1).padStart(3,'0');
+}
+function cell(sheet,row,col,kind,value){
+  if(col===undefined) return null;
+  if(kind==='date') value=(value instanceof Date)?iso(value):(value||'');
+  if(value===''||value==null||(value===0&&kind!=='text')) return {sheet,row,col,kind:'clear'};
+  return {sheet,row,col,kind,value};
+}
+function cellsFor(b,row){
+  const c=DATA.colV;
+  return [cell('Vélos',row,c.id,'text',b.key),
+          cell('Vélos',row,c.nom,'text',b.nom||''),
+          cell('Vélos',row,c.dAchat,'date',b.dAchat),
+          cell('Vélos',row,c.achat,'n',b.achat),
+          cell('Vélos',row,c.statut,'text',b.statut||''),
+          cell('Vélos',row,c.dAnnonce,'date',b.dAnnonce),
+          cell('Vélos',row,c.annonce,'n',b.annonce),
+          cell('Vélos',row,c.dVente,'date',b.dVente),
+          cell('Vélos',row,c.vendu,'n',b.vendu)].filter(Boolean);
+}
+function partCells(p,row){
+  const c=DATA.colP;
+  return [cell('Pièces',row,c.id,'text',p.bike),
+          cell('Pièces',row,c.date,'date',p.date),
+          cell('Pièces',row,c.piece,'text',p.nom||''),
+          cell('Pièces',row,c.qte,'n',p.qte||1),
+          cell('Pièces',row,c.pu,'n',p.pu)].filter(Boolean);
+}
+const clearRow=(sheet,row,cols)=>Object.keys(cols).map(k=>({sheet,row,col:cols[k],kind:'clear'}));
+
+/* ==================== VUES ==================== */
+function view(n){
+  ['board','list','setup'].forEach(v=>$('#v-'+v).hidden=v!==n);
+  $$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===n)));
+  $('#fab').hidden=!(n==='list'&&DATA&&!READONLY);
+  $('#title').textContent={board:'Atelier vélos',list:'Mes vélos',setup:'Réglages'}[n];
+  store.set('view',n);
+}
+$$('nav.tabs button').forEach(b=>b.onclick=()=>view(b.dataset.view));
+
+let toastT;
+function toast(m){
+  clearTimeout(toastT);
+  let el=$('.toast'); if(!el){ el=document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent=m; toastT=setTimeout(()=>el.remove(),3600);
+}
+function setSync(s,l){ $('#sync').innerHTML='<i class="dot '+s+'"></i><span>'+l+'</span>'; }
+const tagIdx=s=>({achete:1,enreparation:2,envente:3,vendu:4}[key(s)]||0);
+function renderAll(){ renderList(); renderBoard(); }
+
+function renderList(){
+  if(!DATA) return;
+  const V=DATA.velos;
+  const groups=[['tous','Tous',V],
+    ['atelier','Atelier',V.filter(b=>['achete','enreparation'].indexOf(key(b.statut))>=0)],
+    ['envente','En vente',V.filter(b=>key(b.statut)==='envente')],
+    ['vendu','Vendus',V.filter(b=>key(b.statut)==='vendu')]];
+  $('#filters').innerHTML=groups.map(g=>
+    '<button data-f="'+g[0]+'" aria-pressed="'+(FILTER===g[0])+'">'+g[1]+' '+g[2].length+'</button>').join('');
+  $$('#filters button').forEach(b=>b.onclick=()=>{ FILTER=b.dataset.f; renderList(); });
+  const found=groups.filter(g=>g[0]===FILTER)[0]||groups[0];
+  const list=found[2].slice().reverse();
+  $('#bikeList').innerHTML=list.length?list.map(card).join('')
+    :'<p class="empty">Aucun vélo ici.'+(V.length?'':'<br>Touche « Nouveau vélo » pour commencer.')+'</p>';
+  bindCards('#bikeList');
+}
+function bindCards(sel){ $$(sel+' .bike').forEach(el=>el.onclick=()=>openSheet(el.dataset.k)); }
+function card(b){
+  const sold=key(b.statut)==='vendu';
+  const known=sold||b.annonce>0;
+  const val=known?(sold?b.margeReelle:b.margeAttendue):b.cout;
+  const lab=known?(sold?'marge':'attendue'):'engagé';
+  return '<button class="bike" data-k="'+esc(b.key)+'">'
+    +'<div class="body"><div class="nom">'+esc(b.nom||'Sans nom')+'</div>'
+    +'<div class="sub">'+esc(b.key)+' · '+fr(b.dAchat)+(b.pieces?' · '+eur(b.pieces)+' de pièces':'')+'</div></div>'
+    +'<div class="amt"><div class="v num '+(known?(val>=0?'pos':'neg'):'')+'">'+eur(val)+'</div>'
+    +'<div class="l">'+lab+'</div></div>'
+    +'<span class="tag t'+tagIdx(b.statut)+'">'+esc(b.statut||'—')+'</span></button>';
+}
+
+/* ---------- fiche ---------- */
+function blankBike(){
+  return {__row:DATA.nextV,key:nextId(),nom:'',statut:'Acheté',dAchat:today(),achat:0,
+    dAnnonce:null,annonce:0,dVente:null,vendu:0,__new:true};
+}
+function openSheet(k){
+  const b=k?DATA.velos.filter(x=>x.key===k)[0]:blankBike();
+  if(!b) return;
+  DRAFT=Object.assign({},b);
+  $('#sheet').hidden=false; document.body.style.overflow='hidden';
+  $('#partsBlock').hidden=!!b.__new;
+  $('#sheetDelete').hidden=!!b.__new||READONLY;
+  $('#sheetSave').disabled=READONLY;
+  drawSheet();
+  $('#sheet').scrollTop=0;
+}
+function closeSheet(){ $('#sheet').hidden=true; document.body.style.overflow=''; DRAFT=null; }
+$('#sheetBack').onclick=closeSheet;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#sheet').hidden) closeSheet(); });
+
+function field(id,label,type,val,unit){
+  const v=(val===0||val==null)?'':String(val);
+  return '<div class="field"><label for="'+id+'">'+label+'</label>'
+    +'<div class="inp"><input id="'+id+'" type="'+(type==='date'?'date':'text')+'"'
+    +(type==='money'?' inputmode="decimal"':'')+' value="'+esc(v)+'">'
+    +(unit?'<span class="unit">'+unit+'</span>':'')
+    +'<button class="clr" data-clr="'+id+'" aria-label="Effacer"'+(v?'':' hidden')+'>&times;</button>'
+    +'</div></div>';
+}
+function drawSheet(){
+  const b=DRAFT;
+  $('#sheetTitle').textContent=b.nom||(b.__new?'Nouveau vélo':b.key);
+  $('#sheetForm').innerHTML=
+    field('fNom','Marque et modèle','text',b.nom)
+    +'<div class="field"><label>Statut</label><div class="seg" id="fStatut">'
+    +STATUTS.map(s=>'<button type="button" data-s="'+s+'" aria-pressed="'+(s===b.statut)+'">'+s+'</button>').join('')
+    +'</div></div>'
+    +field('fDAchat','Date d’achat','date',iso(b.dAchat))
+    +field('fAchat','Prix d’achat','money',b.achat,'€')
+    +field('fDAnnonce','Date de mise en vente','date',iso(b.dAnnonce))
+    +field('fAnnonce','Prix annoncé','money',b.annonce,'€')
+    +field('fDVente','Date de vente','date',iso(b.dVente))
+    +field('fVendu','Prix de vente réel','money',b.vendu,'€');
+
+  bind('fNom','nom',v=>v);
+  bind('fDAchat','dAchat',fromIso); bind('fDAnnonce','dAnnonce',fromIso); bind('fDVente','dVente',fromIso);
+  bind('fAchat','achat',parseNum); bind('fAnnonce','annonce',parseNum); bind('fVendu','vendu',parseNum);
+  $$('#fStatut button').forEach(el=>el.onclick=()=>{ DRAFT.statut=el.dataset.s; syncStatusUI(); });
+  $$('#sheetForm .clr').forEach(el=>el.onclick=()=>{
+    const i=$('#'+el.dataset.clr); i.value=''; i.dispatchEvent(new Event('input')); i.focus();
+  });
+  syncStatusUI(); drawRecap(); drawParts();
+}
+function bind(id,prop,conv){
+  const el=$('#'+id); if(!el) return;
+  el.addEventListener('input',()=>{
+    DRAFT[prop]=conv(el.value);
+    const c=el.parentNode.querySelector('.clr'); if(c) c.hidden=!el.value;
+    if(prop==='nom') $('#sheetTitle').textContent=el.value||'Nouveau vélo';
+    autoStatus(prop); drawRecap();
+  });
+}
+function autoStatus(prop){
+  if(prop==='vendu'&&DRAFT.vendu>0&&DRAFT.statut!=='Vendu'){
+    DRAFT.statut='Vendu'; if(!DRAFT.dVente){ DRAFT.dVente=today(); $('#fDVente').value=iso(DRAFT.dVente); }
+    syncStatusUI();
+  }else if(prop==='annonce'&&DRAFT.annonce>0&&['Acheté','En réparation'].indexOf(DRAFT.statut)>=0){
+    DRAFT.statut='En vente'; if(!DRAFT.dAnnonce){ DRAFT.dAnnonce=today(); $('#fDAnnonce').value=iso(DRAFT.dAnnonce); }
+    syncStatusUI();
+  }
+}
+function syncStatusUI(){
+  $$('#fStatut button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.s===DRAFT.statut)));
+  const tag=$('#sheetTag'); tag.textContent=DRAFT.statut||'—'; tag.className='tag t'+tagIdx(DRAFT.statut);
+}
+function drawRecap(){
+  const b=DRAFT;
+  const parts=DATA.pieces.filter(p=>p.bike===b.key).reduce((a,p)=>a+p.qte*p.pu,0);
+  const cout=(b.achat||0)+parts;
+  const sold=b.vendu>0;
+  const marge=sold?b.vendu-cout:(b.annonce?b.annonce-cout:0);
+  $('#recap').innerHTML=
+    '<div><dt>Pièces</dt><dd class="num">'+eur(parts)+'</dd></div>'
+   +'<div><dt>Coût total</dt><dd class="num">'+eur(cout)+'</dd></div>'
+   +'<div><dt>'+(sold?'Marge réalisée':'Marge attendue')+'</dt><dd class="num '+(marge>=0?'pos':'neg')+'">'
+   +((b.annonce||sold)?eur(marge):'—')+'</dd></div>';
+}
+function drawParts(){
+  if(DRAFT.__new) return;
+  const list=DATA.pieces.filter(p=>p.bike===DRAFT.key);
+  $('#partsList').innerHTML=list.length?list.map(p=>
+    '<div class="part"><div class="p1"><div class="n">'+esc(p.nom||'Pièce')+'</div>'
+   +'<div class="d">'+p.qte+' × '+eur(p.pu)+' · '+fr(p.date)+'</div></div>'
+   +'<div class="amt num">'+eur(p.qte*p.pu)+'</div>'
+   +'<button class="del" data-r="'+p.__row+'" aria-label="Supprimer">&times;</button></div>').join('')
+   :'<div class="part"><div class="p1 muted">Aucune pièce pour ce vélo.</div></div>';
+  $$('#partsList .del').forEach(el=>el.onclick=()=>removePart(+el.dataset.r));
+}
+function removePart(row){
+  const i=DATA.pieces.map(p=>p.__row).indexOf(row); if(i<0) return;
+  DATA.pieces.splice(i,1); recompute(DATA);
+  queue(clearRow('Pièces',row,DATA.colP),'Pièce supprimée');
+  drawParts(); drawRecap(); renderAll(); toast('Pièce supprimée');
+}
+$('#pAdd').onclick=()=>{
+  const nom=$('#pName').value.trim();
+  const qte=Math.max(1,Math.round(parseNum($('#pQte').value)||1));
+  const pu=parseNum($('#pPu').value);
+  if(!nom&&!pu){ toast('Indique au moins un nom et un prix.'); return; }
+  const p={__row:DATA.nextP++,bike:DRAFT.key,date:today(),nom:nom||'Pièce',qte:qte,pu:pu};
+  DATA.pieces.push(p); recompute(DATA); queue(partCells(p,p.__row),'Pièce : '+p.nom);
+  $('#pName').value=''; $('#pQte').value='1'; $('#pPu').value='';
+  drawParts(); drawRecap(); renderAll();
+};
+$('#sheetSave').onclick=()=>{
+  const b=DRAFT;
+  if(!b.nom&&!b.achat){ toast('Renseigne au moins un modèle ou un prix d’achat.'); return; }
+  if(b.__new){
+    const nb=Object.assign({},b); delete nb.__new;
+    nb.__row=DATA.nextV++; DATA.velos.push(nb);
+    recompute(DATA); queue(cellsFor(nb,nb.__row),'Nouveau vélo : '+(nb.nom||nb.key)); toast('Vélo ajouté');
+  }else{
+    const t=DATA.velos.filter(x=>x.key===b.key)[0];
+    Object.assign(t,{nom:b.nom,statut:b.statut,dAchat:b.dAchat,achat:b.achat,
+      dAnnonce:b.dAnnonce,annonce:b.annonce,dVente:b.dVente,vendu:b.vendu});
+    recompute(DATA); queue(cellsFor(t,t.__row),'Fiche : '+(t.nom||t.key)); toast('Fiche mise à jour');
+  }
+  closeSheet(); renderAll();
+};
+$('#sheetDelete').onclick=()=>{
+  const b=DRAFT;
+  if(!confirm('Supprimer '+(b.nom||b.key)+' et ses pièces ? Action définitive.')) return;
+  const edits=clearRow('Vélos',b.__row,DATA.colV);
+  DATA.pieces.filter(p=>p.bike===b.key).forEach(p=>{ clearRow('Pièces',p.__row,DATA.colP).forEach(e=>edits.push(e)); });
+  DATA.pieces=DATA.pieces.filter(p=>p.bike!==b.key);
+  DATA.velos=DATA.velos.filter(x=>x.key!==b.key);
+  recompute(DATA); queue(edits,'Vélo supprimé'); closeSheet(); renderAll(); toast('Vélo supprimé');
+};
+$('#fab').onclick=()=>openSheet(null);
+
+/* ---------- tableau de bord ---------- */
+function renderBoard(){
+  if(!DATA) return;
+  const now=today(), V=DATA.velos;
+  const sameMonth=d=>d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  const vendusMois=V.filter(b=>sameMonth(b.dVente));
+  const enVente=V.filter(b=>key(b.statut)==='envente');
+  const realise=vendusMois.reduce((a,b)=>a+b.margeReelle,0);
+  const potentiel=enVente.reduce((a,b)=>a+b.margeAttendue,0);
+  const objectif=DATA.objectif||1000, reste=Math.max(0,objectif-realise);
+  const vendus=V.filter(b=>b.vendu>0);
+  const margeMoy=vendus.length?vendus.reduce((a,b)=>a+b.margeReelle,0)/vendus.length:0;
+  const immo=V.filter(b=>!b.vendu).reduce((a,b)=>a+b.cout,0);
+  const dl=vendus.filter(b=>b.jours!=null);
+  const delai=dl.length?dl.reduce((a,b)=>a+b.jours,0)/dl.length:0;
+
+  $('#monthLabel').textContent=MONTHS[now.getMonth()];
+  $('#margeNow').textContent=eur(realise);
+  $('#goalTxt').textContent=eur(objectif);
+  $('#pctTxt').textContent=Math.round(realise/objectif*100)+' %';
+  const step=objectif/10, cells=$('#cells'); cells.innerHTML='';
+  for(let i=0;i<10;i++){
+    const lo=i*step;
+    const d=Math.min(1,Math.max(0,(realise-lo)/step));
+    const o=Math.min(1,Math.max(0,(realise+potentiel-lo)/step));
+    const el=document.createElement('div'); el.className='cell';
+    el.innerHTML='<i class="o" style="width:'+(o*100)+'%"></i><i class="d" style="width:'+(d*100)+'%"></i>';
+    cells.appendChild(el);
+  }
+  const fin=new Date(now.getFullYear(),now.getMonth()+1,0);
+  const j=Math.max(0,Math.round((fin-now)/864e5));
+  let v;
+  if(!V.length) v='Aucun vélo enregistré. Ajoute le premier depuis l’onglet Vélos.';
+  else if(reste===0) v='Objectif atteint. Tout ce qui part maintenant est du bonus.';
+  else if(margeMoy>0){
+    const nb=Math.ceil(reste/margeMoy);
+    v='Il te manque <b>'+eur(reste)+'</b>, soit <b>'+nb+' vélo'+(nb>1?'s':'')+'</b> à ta marge moyenne de '+eur(margeMoy)+'. '
+     +(potentiel>=reste?'Ce qui est déjà en vente suffit, au prix annoncé.'
+                       :'Les annonces en ligne ne couvrent que '+eur(potentiel)+'.')
+     +' Reste '+j+' jour'+(j>1?'s':'')+'.';
+  } else v='Il te manque <b>'+eur(reste)+'</b>. Pas encore de vente : la marge moyenne se calculera à la première.';
+  $('#verdict').innerHTML=v;
+
+  $('#stats').innerHTML=[
+    ['Vendus ce mois',vendusMois.length],
+    ['Encaissé',eur(vendusMois.reduce((a,b)=>a+b.vendu,0))],
+    ['Marge moyenne',margeMoy?eur(margeMoy):'—'],
+    ['Argent immobilisé',eur(immo)],
+    ['Délai moyen',delai?Math.round(delai)+' j':'—']
+  ].map(s=>'<div class="stat"><dt>'+s[0]+'</dt><dd class="num">'+s[1]+'</dd></div>').join('');
+
+  $('#openList').innerHTML=enVente.length?enVente.map(card).join(''):'<p class="empty">Aucune annonce en ligne.</p>';
+  $('#soldList').innerHTML=vendusMois.length?vendusMois.map(card).join(''):'<p class="empty">Pas encore de vente ce mois-ci.</p>';
+  bindCards('#openList'); bindCards('#soldList');
+}
+
+/* ==================== RÉGLAGES ==================== */
+$('#btnAuth').onclick=async()=>{
+  const k=$('#appkey').value.trim();
+  if(!k){ toast('Colle d’abord ton App key.'); return; }
+  store.set('appKey',k); store.set('path',$('#fpath').value.trim()||'/Suivi_velos_electriques.xlsx');
+  try{ await DBX.begin(); $('#setupCode').hidden=false; $('#authcode').focus(); }
+  catch(e){ toast('Impossible d’ouvrir Dropbox.'); }
+};
+$('#btnCancelCode').onclick=()=>$('#setupCode').hidden=true;
+$('#btnCode').onclick=async()=>{
+  try{ await DBX.finish($('#authcode').value); $('#setupCode').hidden=true; await load(); view('board'); }
+  catch(e){ toast(e.message); }
+};
+$('#btnReload').onclick=()=>pull();
+$('#btnPull').onclick=()=>pull();
+$('#btnPush').onclick=()=>sendAll();
+$('#btnGrab').onclick=()=>grabCopy();
+$('#sync').onclick=()=>{ if(PENDING.length) toast(PENDING.length+' modification(s) en attente. Touche Envoyer.'); };
+function pull(){
+  if(PENDING.length && !confirm(PENDING.length+' modification(s) ne sont pas encore envoyées.\n\nLes abandonner et recharger la version de Dropbox ?')) return;
+  PENDING=[]; store.set('pending',PENDING); load();
+}
+$('#btnLogout').onclick=()=>{ store.del('refresh'); store.del('data'); store.del('pending');
+  PENDING=[]; DBX.token=null; DATA=null; showSetup(); view('setup'); toast('Dropbox déconnecté.'); };
+$('#btnLocal').onclick=()=>$('#localFile').click();
+$('#localFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ try{ BUF=ev.target.result; DATA=parseBook(BUF); READONLY=true;
+      renderAll(); view('board'); setSync('busy','fichier local, lecture seule'); }
+    catch(err){ toast(err.message); } };
+  r.readAsArrayBuffer(f);
+});
+function showSetup(){
+  const on=!!DBX.refresh;
+  $('#setupIntro').hidden=on; $('#setupOk').hidden=!on;
+  if(on) $('#okPath').textContent='Fichier suivi : '+DBX.path;
+  else { $('#appkey').value=DBX.appKey||''; $('#fpath').value=DBX.path; }
+}
+async function load(){
+  showSetup();
+  if(!DBX.refresh){ setSync('off','non connecté'); $('#bar').hidden=true; view('setup'); return; }
+  setSync('busy','lecture…');
+  try{
+    BUF=await DBX.download();
+    checkBook(BUF);
+    DATA=parseBook(BUF); READONLY=false;
+    saveLocal(); renderAll(); updateBar();
+    view(store.get('view')||'board');
+  }catch(e){ setSync('off','erreur'); toast(e.message); view('setup'); }
+}
+
+/* ==================== DÉMARRAGE ==================== */
+PENDING=store.get('pending')||[];
+showSetup();
+(function start(){
+  if(!DBX.refresh){ view('setup'); updateBar(); return; }
+  const local=restoreLocal();
+  if(local && PENDING.length){
+    DATA=local; READONLY=false;
+    renderAll(); updateBar();
+    view(store.get('view')||'board');
+    toast(PENDING.length+' modification(s) en attente d’envoi');
+  }else{
+    view(store.get('view')||'board');
+    load();
+  }
+})();
+</script>
+</body>
+</html>
