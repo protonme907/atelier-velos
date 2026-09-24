@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B3FA0">
+<title>Atelier vélos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,500;0,700;0,800;1,800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --blue:#1B3FA0; --blue-2:#2B59D9; --blue-dk:#12296B; --sky:#E9EFFC;
+    --bg:#F2F3F5; --surface:#fff; --ink:#101828; --soft:#5B6474; --line:#DDE1E7;
+    --tag:#FFE14D; --pos:#0F7B55; --neg:#C62828; --warn:#D96C00;
+    --s-achete:#5B6474; --s-rep:#D96C00; --s-vente:#2B59D9; --s-vendu:#0F7B55;
+    --top:60px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font-family:Roboto,-apple-system,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .cond{font-family:"Roboto Condensed","Arial Narrow",Roboto,sans-serif}
+  .num{font-variant-numeric:tabular-nums}
+  button{font:inherit;cursor:pointer;color:inherit}
+  :focus-visible{outline:3px solid var(--blue-2);outline-offset:2px}
+  [hidden]{display:none!important}
+  .muted{color:var(--soft);font-size:13.5px}
+  a{color:var(--blue-2)}
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+
+  /* ---------- barre du haut ---------- */
+  header.top{position:sticky;top:0;z-index:50;height:var(--top);background:var(--blue);color:#fff;
+    display:flex;align-items:center;gap:10px;padding:0 14px;box-shadow:0 2px 0 var(--blue-dk)}
+  .burger{background:none;border:none;color:#fff;width:42px;height:42px;display:grid;place-items:center;margin-left:-6px;border-radius:4px}
+  .burger:hover{background:rgba(255,255,255,.12)}
+  .brand{font-family:"Roboto Condensed",sans-serif;font-weight:800;font-style:italic;font-size:21px;letter-spacing:.01em;
+    text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:8px}
+  .brand .mark{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-style:normal}
+  .brand small{font-weight:500;font-style:normal;font-size:12px;opacity:.75;letter-spacing:.06em;margin-left:2px}
+  .top-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .sync{font-size:12px;color:#fff;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:none;padding:6px 10px;border-radius:99px;white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:#9AA7C7;flex:none}
+  .dot.on{background:#5BE39A} .dot.busy{background:var(--tag)} .dot.off{background:#FF7B7B}
+  .tbtn{border:2px solid rgba(255,255,255,.55);background:none;color:#fff;border-radius:4px;padding:6px 12px;font-weight:700;font-size:13px;text-transform:uppercase;font-family:"Roboto Condensed",sans-serif;letter-spacing:.03em}
+  .tbtn.hot{background:var(--tag);border-color:var(--tag);color:var(--ink)}
+  .tbtn:disabled{opacity:.45}
+  .tbtn svg{display:none}
+  .tbtn{white-space:nowrap}
+  @media (max-width:959px){ #addTop{display:none} }
+  @media (max-width:560px){ .brand small,.sync span,.tbtn .lb{display:none} .brand{font-size:17px;gap:6px} .brand .mark{width:26px;height:26px}
+    .sync{padding:8px} .tbtn{padding:5px 8px} .tbtn svg{display:block} header.top{gap:6px;padding:0 10px} .top-r{gap:6px} }
+  @media (max-width:420px){ .sync{display:none} }
+  @media (max-width:360px){ .brand .mark{display:none} }
+
+  /* ---------- menu ---------- */
+  .layout{display:flex;align-items:flex-start;min-height:calc(100vh - var(--top))}
+  .side{width:250px;flex:none;background:var(--surface);border-right:1px solid var(--line);
+    position:sticky;top:var(--top);height:calc(100vh - var(--top));overflow-y:auto;padding:14px 0 24px}
+  .side h6{margin:14px 20px 6px;font:700 11px/1 "Roboto Condensed",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--soft)}
+  .nav-i{display:flex;align-items:center;gap:12px;width:100%;border:none;background:none;text-align:left;
+    padding:11px 20px;font-weight:500;font-size:15px;border-left:4px solid transparent}
+  .nav-i svg{flex:none;width:20px;height:20px;color:var(--soft)}
+  .nav-i:hover{background:var(--bg)}
+  .nav-i[aria-current="true"]{border-left-color:var(--blue-2);background:var(--sky);color:var(--blue);font-weight:700}
+  .nav-i[aria-current="true"] svg{color:var(--blue-2)}
+  .nav-i .chev{margin-left:auto;width:16px;height:16px;transition:transform .15s}
+  .nav-i[aria-expanded="true"] .chev{transform:rotate(180deg)}
+  .sub{padding:2px 0 6px}
+  .sub button{display:flex;justify-content:space-between;width:100%;border:none;background:none;text-align:left;padding:8px 20px 8px 56px;font-size:14px;color:var(--soft)}
+  .sub button:hover{color:var(--ink);background:var(--bg)}
+  .sub button[aria-current="true"]{color:var(--blue);font-weight:700}
+  .sub .cnt{font-size:12px;background:var(--bg);border-radius:99px;padding:0 8px;min-width:26px;text-align:center}
+  .scrim{position:fixed;inset:var(--top) 0 0 0;background:rgba(16,24,40,.35);z-index:44}
+  @media (max-width:959px){
+    .side{position:fixed;top:var(--top);left:0;right:0;width:auto;height:auto;max-height:calc(100vh - var(--top));
+      z-index:45;border-right:none;border-bottom:3px solid var(--blue);transform:translateY(-8px);opacity:0;pointer-events:none;
+      transition:opacity .15s,transform .15s;box-shadow:0 12px 24px rgba(16,24,40,.18)}
+    .side.open{transform:none;opacity:1;pointer-events:auto}
+  }
+  @media (min-width:960px){ .burger{display:none} .scrim{display:none!important} }
+
+  /* ---------- contenu ---------- */
+  main{flex:1;min-width:0;padding:18px 16px 110px}
+  .page{max-width:1080px;margin:0 auto}
+  .crumbs{font-size:12.5px;color:var(--soft);margin-bottom:4px}
+  .ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  h1{font:800 28px/1.1 "Roboto Condensed",sans-serif;text-transform:uppercase;margin:0;letter-spacing:-.005em}
+  h2{font:700 17px/1.2 "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:26px 0 10px;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:4px;height:17px;background:var(--blue-2);flex:none}
+  @media (max-width:560px){ h2{flex-wrap:wrap} h2 .aside{flex-basis:100%;margin-left:14px!important} }
+  h2 .aside{margin-left:auto;font:400 13px Roboto,sans-serif;text-transform:none;color:var(--soft);letter-spacing:0}
+  .box{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px}
+  .box + .box{margin-top:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--blue-2);color:#fff;border:2px solid var(--blue-2);
+    border-radius:4px;padding:10px 18px;font:700 14px "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.04em}
+  .btn:hover{background:var(--blue);border-color:var(--blue)}
+  .btn.ghost{background:var(--surface);color:var(--blue);border-color:var(--blue-2)}
+  .btn.ghost:hover{background:var(--sky)}
+  .btn.danger{background:var(--surface);color:var(--neg);border-color:#E7B4B4}
+  .btn:disabled{opacity:.4}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 16px;position:relative}
+  .kpi dt{font-size:12.5px;color:var(--soft);font-weight:500}
+  .kpi dd{margin:4px 0 0;font:800 26px/1.1 "Roboto Condensed",sans-serif}
+  .kpi .sub2{font-size:12.5px;color:var(--soft);margin-top:3px}
+  .kpi.feat{background:var(--blue);border-color:var(--blue);color:#fff}
+  .kpi.feat dt,.kpi.feat .sub2{color:rgba(255,255,255,.8)}
+
+  /* objectif */
+  .hero{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+  @media (max-width:760px){ .hero{grid-template-columns:1fr} }
+  .goal-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+  .big{font:800 clamp(40px,8vw,56px)/.95 "Roboto Condensed",sans-serif;letter-spacing:-.01em}
+  .prog{margin-top:16px;height:16px;background:var(--bg);border-radius:2px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .prog i{position:absolute;top:0;bottom:0;left:0}
+  .prog i.o{background:repeating-linear-gradient(135deg,#9DB3EE 0 4px,var(--sky) 4px 8px)}
+  .prog i.d{background:var(--blue-2)}
+  .legend{display:flex;gap:16px;margin-top:9px;font-size:12.5px;color:var(--soft);flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .chip{width:11px;height:11px;border-radius:2px}
+  .chip.d{background:var(--blue-2)} .chip.o{background:repeating-linear-gradient(135deg,#9DB3EE 0 3px,var(--sky) 3px 6px)}
+  .chip.a{background:#B9C4D6} .chip.v{background:var(--pos)}
+  .verdict{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:15px}
+
+  /* prix façon étiquette */
+  .price{display:inline-block;background:var(--tag);color:var(--ink);font:800 20px/1 "Roboto Condensed",sans-serif;padding:5px 9px 4px;border-radius:2px;white-space:nowrap}
+  .price.sm{font-size:16px;padding:4px 7px 3px}
+  .price.sold{background:var(--ink);color:#fff}
+  .price.none{background:var(--bg);color:var(--soft);font-weight:700}
+
+  /* filtres */
+  .filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px}
+  .filters::-webkit-scrollbar{display:none}
+  .filters button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 14px;font-size:13.5px;font-weight:500}
+  .filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 12px;margin-bottom:10px}
+  .search input{flex:1;border:none;outline:none;font:inherit;padding:10px 0;background:none;min-width:0}
+
+  /* cartes vélo */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+  .bike{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:150px;transition:box-shadow .12s,border-color .12s}
+  .bike:hover{border-color:#B7C3DA;box-shadow:0 4px 14px rgba(16,24,40,.08)}
+  .bike .top1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .bike .ref{font-size:12px;color:var(--soft);font-weight:500}
+  .bike .nom{font:700 17px/1.2 "Roboto Condensed",sans-serif;text-transform:uppercase;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .bike .meta{font-size:12.5px;color:var(--soft)}
+  .bike .bot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+  .bike .mg{text-align:right;font-size:12px;color:var(--soft)}
+  .bike .mg b{display:block;font:800 17px "Roboto Condensed",sans-serif}
+  .bike .trend{font-size:12px;font-weight:700}
+  .badge{font:700 11px/1 "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px;border-radius:2px;color:#fff;background:var(--s-achete);white-space:nowrap}
+  .badge.b2{background:var(--s-rep)} .badge.b3{background:var(--s-vente)} .badge.b4{background:var(--s-vendu)}
+  .empty{text-align:center;color:var(--soft);padding:30px 16px;font-size:14.5px;background:var(--surface);border:1px dashed var(--line);border-radius:4px}
+
+  /* tableaux */
+  .tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:4px;overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th{font:700 11.5px "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);text-align:left;padding:10px 12px;border-bottom:2px solid var(--line);white-space:nowrap;background:#FAFBFC}
+  td{padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  td.r,th.r{text-align:right}
+  tbody tr.click{cursor:pointer} tbody tr.click:hover{background:var(--bg)}
+  tfoot td{font-weight:700;border-top:2px solid var(--line);background:#FAFBFC}
+
+  /* barres vendu vs annoncé */
+  .bars{display:flex;flex-direction:column;gap:12px}
+  .bar-r{display:grid;grid-template-columns:minmax(90px,170px) 1fr 70px;gap:10px;align-items:center;font-size:13px}
+  .bar-r .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-t{position:relative;height:22px}
+  .bar-t i{position:absolute;left:0;height:9px;border-radius:0 2px 2px 0}
+  .bar-t i.a{top:1px;background:#B9C4D6}
+  .bar-t i.v{top:12px;background:var(--pos)}
+  .bar-t i.v.lo{background:var(--warn)}
+  .bar-r .e{text-align:right;font-weight:700}
+
+  /* journal */
+  .day{margin-bottom:14px}
+  .day h3{font:700 13px "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin:0 0 6px;display:flex;justify-content:space-between}
+  .log{background:var(--surface);border:1px solid var(--line);border-radius:4px}
+  .li{display:grid;grid-template-columns:46px 1fr auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center}
+  .li:last-child{border-bottom:none}
+  .li .h{font-size:12.5px;color:var(--soft);font-variant-numeric:tabular-nums}
+  .li .w{min-width:0}
+  .li .w b{font-weight:500}
+  .li .w .s{font-size:12.5px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .li .m{font:700 15px "Roboto Condensed",sans-serif;text-align:right}
+  .li.strike .w b{text-decoration:line-through;color:var(--soft)}
+  .pill{font-size:11px;border-radius:2px;padding:1px 6px;margin-left:6px;background:var(--bg);color:var(--soft);font-weight:500;vertical-align:1px}
+  select.sel{font:inherit;border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:var(--surface)}
+
+  /* ---------- fiche vélo (panneau) ---------- */
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);z-index:70;overflow-y:auto;
+    box-shadow:-10px 0 30px rgba(16,24,40,.2);padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+  .d-scrim{position:fixed;inset:0;background:rgba(16,24,40,.4);z-index:69}
+  .d-top{position:sticky;top:0;z-index:3;background:var(--blue);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .d-top .back{border:none;background:none;color:#fff;width:36px;height:36px;display:grid;place-items:center;border-radius:4px}
+  .d-top .back:hover{background:rgba(255,255,255,.12)}
+  .d-top .ttl{flex:1;min-width:0;font:700 18px "Roboto Condensed",sans-serif;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .d-in{padding:14px}
+  .recap{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+  .recap div{background:var(--surface);padding:10px 12px}
+  .recap dt{font-size:12px;color:var(--soft)}
+  .recap dd{margin:2px 0 0;font:800 20px "Roboto Condensed",sans-serif}
+  .grp{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px;margin-top:10px}
+  .grp > .gt{font:700 14px "Roboto Condensed",sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{margin-bottom:10px}
+  .two .field{margin-bottom:0}
+  .field > label{display:block;font-size:12.5px;color:var(--soft);margin-bottom:4px;font-weight:500}
+  .inp{display:flex;align-items:center;border:1px solid #C9CFD8;border-radius:4px;background:var(--surface);overflow:hidden}
+  .inp:focus-within{border-color:var(--blue-2);box-shadow:0 0 0 1px var(--blue-2)}
+  .inp input{flex:1;min-width:0;font:inherit;border:none;background:none;color:inherit;padding:10px 11px;outline:none}
+  .inp .unit{color:var(--soft);padding-right:10px}
+  .clr{border:none;background:none;color:var(--soft);font-size:19px;line-height:1;padding:8px 10px;flex:none}
+  .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  @media (max-width:420px){ .seg{grid-template-columns:repeat(2,1fr)} }
+  .seg button{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:9px 4px;font-size:13px;color:var(--soft)}
+  .seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff;font-weight:700}
+  .hist{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+  .hist .hl{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13.5px}
+  .hist .hl .dd{color:var(--soft);width:92px;flex:none;font-variant-numeric:tabular-nums}
+  .hist .hl .vv{font-weight:700;flex:1}
+  .hist .hl .x{border:none;background:none;color:var(--soft);font-size:17px;padding:0 6px}
+  .spark{display:block;width:100%;height:54px;margin:4px 0 6px}
+  .part{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .part:last-child{border-bottom:none}
+  .part .p1{flex:1;min-width:0}
+  .part .p1 .d{font-size:12px;color:var(--soft)}
+  .part .del{border:none;background:none;color:var(--soft);font-size:18px;padding:4px 6px;line-height:1}
+  .addpart{display:grid;grid-template-columns:1fr 56px 96px auto;gap:6px;align-items:end;margin-top:10px}
+  .addpart .field{margin:0}
+  .d-act{position:fixed;right:0;bottom:0;width:min(560px,100%);background:var(--surface);border-top:1px solid var(--line);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:71}
+  .d-act .btn:last-child{flex:1}
+
+  .fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;box-shadow:0 6px 16px rgba(27,63,160,.35)}
+  @media (min-width:960px){ .fab{display:none} }
+  ol.steps{padding-left:19px;margin:0}
+  ol.steps li{margin-bottom:8px}
+  code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:13px}
+  .note{background:var(--sky);border-left:4px solid var(--blue-2);padding:10px 14px;border-radius:2px;font-size:14px;margin-bottom:12px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;
+    padding:11px 17px;border-radius:4px;font-size:14px;z-index:90;max-width:92vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <div class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 8h6l3.5 8M9 8l3 8 3-8M8 5h3"/></svg></span>Atelier vélos<small>suivi</small></div>
+  <div class="top-r">
+    <button class="sync" id="sync"><i class="dot"></i><span>hors ligne</span></button>
+    <span id="bar" hidden style="display:contents">
+      <button class="tbtn" id="btnPull" aria-label="Charger depuis Dropbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg><span class="lb">Charger</span></button>
+      <button class="tbtn" id="btnPush">Envoyer <span id="pushN"></span></button>
+    </span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="side" id="side" aria-label="Menu principal">
+    <h6>Pilotage</h6>
+    <button class="nav-i" data-view="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Tableau de bord</button>
+    <button class="nav-i" data-view="analyses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analyses</button>
+    <h6>Stock</h6>
+    <button class="nav-i" data-view="list" id="navList" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 8h6l3.5 8M9 8l3 8 3-8"/></svg>Vélos<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="sub" id="navSub"></div>
+    <button class="nav-i" data-view="depenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Journal des dépenses</button>
+    <h6>Compte</h6>
+    <button class="nav-i" data-view="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Réglages &amp; Dropbox</button>
+  </nav>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <main><div class="page">
+    <div class="crumbs" id="crumbs">Atelier vélos</div>
+    <div class="ph"><h1 id="title">Tableau de bord</h1><div id="phAct"></div></div>
+    <div class="note" id="migNote" hidden></div>
+
+    <!-- TABLEAU DE BORD -->
+    <section id="v-board" hidden>
+      <div class="hero">
+        <div class="box">
+          <div class="goal-top">
+            <div><div class="muted">Marge encaissée en <span id="monthLabel"></span></div>
+              <div class="big num" id="margeNow">0 €</div></div>
+            <div style="text-align:right"><div class="muted">Objectif</div><div class="cond num" style="font-weight:800;font-size:22px" id="goalTxt">1 000 €</div>
+              <div class="muted"><span class="num" id="pctTxt">0 %</span> atteint</div></div>
+          </div>
+          <div class="prog" id="prog"><i class="o"></i><i class="d"></i></div>
+          <div class="legend"><span><i class="chip d"></i>encaissé</span><span><i class="chip o"></i>en plus si tout part au prix annoncé</span></div>
+          <p class="verdict" id="verdict"></p>
+        </div>
+        <div class="kpi feat" style="display:flex;flex-direction:column;justify-content:space-between">
+          <div><dt>Valeur totale en vente</dt><dd class="num" id="kVente" style="font-size:40px">0 €</dd>
+            <div class="sub2" id="kVenteSub">au prix annoncé</div></div>
+          <div class="sub2" id="kVenteMarge" style="margin-top:14px;border-top:1px solid rgba(255,255,255,.25);padding-top:10px"></div>
+        </div>
+      </div>
+
+      <h2>Le mois en chiffres</h2>
+      <dl class="kpis" id="stats"></dl>
+
+      <h2>Vendu vs annoncé <span class="aside"><a href="#" id="toAna">voir l’analyse complète →</a></span></h2>
+      <dl class="kpis" id="vsKpis"></dl>
+
+      <h2>En vente <span class="aside" id="openCount"></span></h2>
+      <div class="grid" id="openList"></div>
+      <h2>Vendus ce mois</h2>
+      <div class="grid" id="soldList"></div>
+    </section>
+
+    <!-- VÉLOS -->
+    <section id="v-list" hidden>
+      <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B6474" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="q" type="search" placeholder="Rechercher un modèle ou une référence"></div>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="bikeList"></div>
+    </section>
+
+    <!-- ANALYSES -->
+    <section id="v-analyses" hidden>
+      <div class="row" style="align-items:center;margin-bottom:4px">
+        <label class="muted" for="anaPer">Période des ventes</label>
+        <select class="sel" id="anaPer"></select>
+      </div>
+      <h2>Vendu vs annoncé</h2>
+      <dl class="kpis" id="anaKpis"></dl>
+      <h2>Vélo par vélo <span class="aside">gris : dernier prix annoncé · couleur : prix obtenu</span></h2>
+      <div class="box"><div class="bars" id="anaBars"></div>
+        <div class="legend"><span><i class="chip a"></i>dernier prix annoncé</span><span><i class="chip v"></i>vendu</span></div></div>
+      <div class="tbl-wrap" style="margin-top:10px"><table id="anaTable"></table></div>
+      <h2>Mois par mois</h2>
+      <div class="tbl-wrap"><table id="anaMonths"></table></div>
+      <h2>Annonces en ligne <span class="aside">évolution des prix des vélos en vente</span></h2>
+      <div class="tbl-wrap"><table id="anaOpen"></table></div>
+    </section>
+
+    <!-- DÉPENSES -->
+    <section id="v-depenses" hidden>
+      <div class="row" style="align-items:center;margin-bottom:12px">
+        <label class="muted" for="depMonth">Mois d’enregistrement</label>
+        <select class="sel" id="depMonth"></select>
+        <select class="sel" id="depType">
+          <option value="all">Toutes les dépenses</option><option value="piece">Pièces</option><option value="achat">Achats de vélos</option>
+        </select>
+      </div>
+      <dl class="kpis" id="depKpis"></dl>
+      <h2>Journal <span class="aside">par date d’enregistrement, le plus récent en haut</span></h2>
+      <div id="depLog"></div>
+    </section>
+
+    <!-- RÉGLAGES -->
+    <section id="v-setup" hidden>
+      <div class="box" id="setupIntro">
+        <h2 style="margin-top:0">Connecter Dropbox</h2>
+        <p class="muted">À faire une fois. Cette page ne voit jamais ton mot de passe, seulement un accès limité à un dossier.</p>
+        <ol class="steps">
+          <li>Sur <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">dropbox.com/developers/apps</a> : <b>Create app</b>, <b>Scoped access</b>, <b>App folder</b>.</li>
+          <li>Onglet <b>Permissions</b> : <code>files.content.read</code> et <code>files.content.write</code>, puis <b>Submit</b>.</li>
+          <li>Onglet <b>Settings</b> : bouton <b>Generate</b> (section OAuth 2) pour créer le dossier, puis copie l’<b>App key</b>.</li>
+        </ol>
+        <div class="field" style="margin-top:14px"><label for="appkey">App key</label>
+          <div class="inp"><input id="appkey" type="text" autocomplete="off" spellcheck="false" placeholder="a1b2c3d4e5f6g7h"></div></div>
+        <button class="btn" id="btnAuth">Autoriser l’accès</button>
+      </div>
+      <div class="box" id="setupCode" hidden>
+        <h2 style="margin-top:0">Code d’autorisation</h2>
+        <p class="muted">Dropbox affiche un code dans l’autre onglet. Colle-le ici.</p>
+        <div class="field"><div class="inp"><input id="authcode" type="text" autocomplete="off" spellcheck="false"></div></div>
+        <div class="row"><button class="btn" id="btnCode">Terminer</button><button class="btn ghost" id="btnCancelCode">Annuler</button></div>
+      </div>
+      <div class="box" id="setupOk" hidden>
+        <h2 style="margin-top:0">Connexion active</h2>
+        <p class="muted">Base de données : <code>donnees.json</code> dans <code>Applications / Atelier velos</code>.</p>
+        <div class="field" style="margin-top:12px;max-width:260px"><label for="fGoal">Objectif de marge mensuelle</label>
+          <div class="inp"><input id="fGoal" type="text" inputmode="decimal"><span class="unit">€</span></div></div>
+        <div class="row"><button class="btn ghost" id="btnReload">Recharger depuis Dropbox</button>
+          <button class="btn danger" id="btnLogout">Déconnecter</button></div>
+      </div>
+      <div class="box">
+        <h2 style="margin-top:0">Export Excel</h2>
+        <p class="muted">Classeur complet reconstruit à chaque export : Vélos, Pièces, Historique des prix, Journal des dépenses, Tableau de bord.</p>
+        <div class="row"><button class="btn ghost" id="btnXlsDbx">Déposer dans Dropbox</button><button class="btn ghost" id="btnXlsDl">Télécharger ici</button></div>
+      </div>
+      <div class="box">
+        <h2 style="margin-top:0">Copie brute de la base</h2>
+        <p class="muted">Télécharge le fichier <code>donnees.json</code> tel qu’il est enregistré, pour garder une archive.</p>
+        <button class="btn ghost" id="btnJsonDl">Télécharger donnees.json</button>
+      </div>
+      <div class="box">
+        <h2 style="margin-top:0">Importer un ancien Excel</h2>
+        <p class="muted">Lit un fichier <code>.xlsx</code> au format du suivi et ajoute les vélos absents de la base.</p>
+        <button class="btn ghost" id="btnImport">Choisir un fichier</button>
+        <input type="file" id="importFile" accept=".xlsx,.xlsm" hidden>
+      </div>
+      <div class="box">
+        <h2 style="margin-top:0">Tester la connexion</h2>
+        <p class="muted">Écrit puis relit un fichier d’essai. Ta base n’est pas touchée.</p>
+        <button class="btn ghost" id="btnDiag">Lancer le test</button>
+        <ol id="diagOut" style="padding-left:18px;margin:14px 0 0;font-size:14px"></ol>
+      </div>
+    </section>
+  </div></main>
+</div>
+
+<button class="btn fab" id="fab" hidden>+ Nouveau vélo</button>
+
+<div class="d-scrim" id="dScrim" hidden></div>
+<aside class="drawer" id="sheet" hidden aria-label="Fiche vélo">
+  <div class="d-top">
+    <button class="back" id="sheetBack" aria-label="Fermer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="ttl" id="sheetTitle"></div>
+    <span class="badge" id="sheetTag"></span>
+  </div>
+  <div class="d-in">
+    <dl class="recap" id="recap"></dl>
+    <div id="sheetForm"></div>
+    <div class="grp" id="partsBlock">
+      <div class="gt">Pièces <span class="muted" style="text-transform:none;font-family:Roboto" id="partsTot"></span></div>
+      <div id="partsList"></div>
+      <div class="addpart">
+        <div class="field"><label for="pName">Pièce</label><div class="inp"><input id="pName" type="text" placeholder="Batterie"></div></div>
+        <div class="field"><label for="pQte">Qté</label><div class="inp"><input id="pQte" type="text" inputmode="numeric" value="1"></div></div>
+        <div class="field"><label for="pPu">Prix unit.</label><div class="inp"><input id="pPu" type="text" inputmode="decimal"><span class="unit">€</span></div></div>
+        <button class="btn" id="pAdd" style="padding:10px 14px" aria-label="Ajouter la pièce">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="d-act">
+    <button class="btn danger" id="sheetDelete">Supprimer</button>
+    <button class="btn" id="sheetSave">Enregistrer</button>
+  </div>
+</aside>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const MONTHS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const STATUTS=['Acheté','En réparation','En vente','Vendu'];
+const norm=s=>(s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const key=s=>norm(s).replace(/[^a-z0-9]/g,'');
+const eur=n=>Math.round(n||0).toLocaleString('fr-FR')+' €';
+const eurS=n=>(n>0?'+':n<0?'−':'')+Math.abs(Math.round(n||0)).toLocaleString('fr-FR')+' €';
+const pct=n=>(n>0?'+':n<0?'−':'')+Math.abs(n*100).toFixed(1).replace('.',',')+' %';
+const num=v=>(typeof v==='number'&&isFinite(v))?v:(typeof v==='string'&&v.trim()!==''&&isFinite(+v)?+v:0);
+const today=()=>new Date();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const parseNum=s=>{const v=parseFloat(String(s==null?'':s).replace(',','.').replace(/[^\d.-]/g,''));return isFinite(v)?v:0;};
+const iso=d=>d?new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10):'';
+const stamp=()=>{const d=today();return iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const fromIso=s=>{ if(!s) return null; if(s instanceof Date) return s; const p=String(s).slice(0,10).split('-').map(Number);
+  return (p.length===3&&isFinite(p[0]))?new Date(p[0],p[1]-1,p[2]):null; };
+const fr=d=>d?d.toLocaleDateString('fr-FR'):'—';
+const frIso=s=>s?fr(fromIso(s)):'—';
+const ym=s=>String(s||'').slice(0,7);
+const ymLabel=k=>{const p=k.split('-');return MONTHS[+p[1]-1]+' '+p[0];};
+const uid=p=>p+Math.random().toString(36).slice(2,9);
+
+const store={
+  get(k){ try{return JSON.parse(localStorage.getItem('velo.'+k));}catch(e){return null;} },
+  set(k,v){ try{localStorage.setItem('velo.'+k,JSON.stringify(v));}catch(e){} },
+  del(k){ try{localStorage.removeItem('velo.'+k);}catch(e){} }
+};
+
+const DB_PATH='/donnees.json';
+const BACKUP_PATH='/donnees_sauvegarde_avant_v2.json';
+const XLS_PATH='/Suivi_velos_electriques.xlsx';
+const VERSION=2;
+let DATA=null, FILTER='tous', QUERY='', DRAFT=null, CHANGES=0, CUR='board', MIGRATED=false;
+
+/* ==================== DROPBOX ==================== */
+const DBX={
+  get appKey(){return store.get('appKey');},
+  get refresh(){return store.get('refresh');},
+  token:null, exp:0,
+  async begin(){
+    const ver=[...crypto.getRandomValues(new Uint8Array(48))].map(b=>('0'+b.toString(16)).slice(-2)).join('');
+    store.set('verifier',ver);
+    const dg=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver));
+    const ch=btoa(String.fromCharCode.apply(null,new Uint8Array(dg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const u=new URL('https://www.dropbox.com/oauth2/authorize');
+    u.searchParams.set('client_id',DBX.appKey); u.searchParams.set('response_type','code');
+    u.searchParams.set('token_access_type','offline');
+    u.searchParams.set('code_challenge',ch); u.searchParams.set('code_challenge_method','S256');
+    window.open(u.toString(),'_blank','noopener');
+  },
+  async finish(code){
+    const body=new URLSearchParams({code:code.trim(),grant_type:'authorization_code',
+      client_id:DBX.appKey,code_verifier:store.get('verifier')||''});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok) throw new Error('Code refusé par Dropbox. Relance l’autorisation.');
+    const j=await r.json();
+    DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000;
+    if(j.refresh_token) store.set('refresh',j.refresh_token);
+    store.del('verifier');
+  },
+  async auth(){
+    if(DBX.token&&Date.now()<DBX.exp) return DBX.token;
+    if(!DBX.refresh) throw new Error('Dropbox n’est pas connecté.');
+    const body=new URLSearchParams({grant_type:'refresh_token',refresh_token:DBX.refresh,client_id:DBX.appKey});
+    const r=await fetch('https://api.dropboxapi.com/oauth2/token',
+      {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(!r.ok){ store.del('refresh'); throw new Error('Connexion Dropbox expirée. Reconnecte-toi dans Réglages.'); }
+    const j=await r.json(); DBX.token=j.access_token; DBX.exp=Date.now()+(j.expires_in-60)*1000; return DBX.token;
+  },
+  async get(path){
+    const t=await DBX.auth();
+    const r=await fetch('https://content.dropboxapi.com/2/files/download',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Dropbox-API-Arg':JSON.stringify({path})}});
+    if(r.status===409) return null;
+    if(!r.ok) throw new Error('Téléchargement impossible ('+r.status+').');
+    return await r.arrayBuffer();
+  },
+  async put(path,bytes){
+    const t=await DBX.auth();
+    const body=(bytes instanceof Uint8Array)?bytes.slice():new Uint8Array(bytes).slice();
+    const r=await fetch('https://content.dropboxapi.com/2/files/upload',
+      {method:'POST',headers:{Authorization:'Bearer '+t,'Content-Type':'application/octet-stream',
+        'Dropbox-API-Arg':JSON.stringify({path,mode:'overwrite',mute:true})},body});
+    const txt=await r.text();
+    if(!r.ok) throw new Error('Dropbox a refusé l’envoi ('+r.status+') : '+txt.slice(0,120));
+    let j={}; try{ j=JSON.parse(txt); }catch(e){}
+    if(j.size!=null&&j.size!==body.length)
+      throw new Error('Envoi incomplet : '+body.length+' octets envoyés, '+j.size+' reçus.');
+    return j;
+  }
+};
+const enc=s=>new TextEncoder().encode(s);
+const dec=b=>new TextDecoder().decode(new Uint8Array(b));
+
+/* ==================== MODÈLE ====================
+   v1 : {version:1, objectif, seq, velos[], pieces[]}
+   v2 : + velos[].prix = historique des prix annoncés [{d, t, v, src}]
+        + pieces[].ajoute = horodatage d’enregistrement
+        + journal[] = log des dépenses (ajouts, suppressions, achats), jamais effacé
+   Tout champ inconnu est conservé tel quel (clé _x) pour ne rien perdre. */
+const V_KEYS=['id','nom','statut','dAchat','achat','dAnnonce','annonce','dVente','vendu','prix','cree'];
+const P_KEYS=['pid','bike','date','nom','qte','pu','ajoute'];
+const R_KEYS=['version','objectif','seq','velos','pieces','journal','migration'];
+const extra=(o,keys)=>{ const x={}; for(const k in o) if(keys.indexOf(k)<0&&k!=='_x') x[k]=o[k]; return Object.assign({},o._x||{},x); };
+
+function emptyData(){ return {version:VERSION,objectif:1000,seq:0,velos:[],pieces:[],journal:[]}; }
+function hydrate(d){
+  const wasV1=!d.journal||(num(d.version)||1)<2;
+  const out={_x:extra(d,R_KEYS)};
+  out.velos=(d.velos||[]).map(b=>({
+    _x:extra(b,V_KEYS),
+    id:String(b.id||''), nom:b.nom||'', statut:b.statut||'Acheté', cree:b.cree||null,
+    dAchat:fromIso(b.dAchat), achat:num(b.achat),
+    dAnnonce:fromIso(b.dAnnonce), annonce:num(b.annonce),
+    dVente:fromIso(b.dVente), vendu:num(b.vendu),
+    prix:Array.isArray(b.prix)?b.prix.map(p=>({d:p.d||'',t:p.t||'',v:num(p.v),src:p.src||'saisie'})):null}));
+  out.pieces=(d.pieces||[]).map(p=>({
+    _x:extra(p,P_KEYS),
+    pid:p.pid||uid('P'), bike:String(p.bike||''),
+    date:fromIso(p.date), nom:p.nom||'', qte:num(p.qte)||1, pu:num(p.pu), ajoute:p.ajoute||null}));
+  out.objectif=num(d.objectif)||1000;
+  out.seq=num(d.seq)||out.velos.reduce((m,b)=>{const x=String(b.id).match(/(\d+)/);return x?Math.max(m,+x[1]):m;},0);
+  out.migration=d.migration||null;
+
+  // --- historique des prix : repris depuis le prix annoncé existant
+  out.velos.forEach(b=>{
+    if(!b.prix){ b.prix=b.annonce>0?[{d:iso(b.dAnnonce)||iso(b.dAchat)||'',t:'',v:b.annonce,src:'reprise'}]:[]; }
+    else if(b.annonce>0&&(!b.prix.length||b.prix[b.prix.length-1].v!==b.annonce)){
+      b.prix.push({d:iso(today()),t:'',v:b.annonce,src:'saisie'});   // cohérence si modifié ailleurs
+    }
+  });
+  // --- journal des dépenses : reconstruit depuis l'existant si absent
+  if(Array.isArray(d.journal)) out.journal=d.journal.map(j=>Object.assign({},j));
+  else{
+    out.journal=[];
+    out.velos.forEach(b=>{ if(b.achat>0) out.journal.push({jid:uid('J'),ts:(iso(b.dAchat)||'')+'T00:00',type:'achat',
+      bike:b.id,velo:b.nom,libelle:'Achat du vélo',qte:1,pu:b.achat,montant:b.achat,dDep:iso(b.dAchat),src:'reprise'}); });
+    out.pieces.forEach(p=>{ const b=out.velos.find(x=>x.id===p.bike);
+      if(!p.ajoute) p.ajoute=(iso(p.date)||'')+'T00:00';
+      out.journal.push({jid:uid('J'),ts:p.ajoute,type:'piece',bike:p.bike,velo:b?b.nom:'',libelle:p.nom||'Pièce',
+        qte:p.qte,pu:p.pu,montant:p.qte*p.pu,dDep:iso(p.date),pid:p.pid,src:'reprise'}); });
+    out.journal.sort((a,b)=>a.ts<b.ts?-1:1);
+  }
+  out.pieces.forEach(p=>{ if(!p.ajoute) p.ajoute=(iso(p.date)||'')+'T00:00'; });
+  if(wasV1&&d.velos){ MIGRATED=true; out.migration={depuis:num(d.version)||1,le:stamp()}; }
+  out.version=VERSION;
+  recompute(out); return out;
+}
+function dry(d){
+  return Object.assign({},d._x||{},{version:VERSION,objectif:d.objectif,seq:d.seq,migration:d.migration||undefined,
+    velos:d.velos.map(b=>Object.assign({},b._x||{},{id:b.id,nom:b.nom,statut:b.statut,cree:b.cree||undefined,
+      dAchat:iso(b.dAchat),achat:b.achat,dAnnonce:iso(b.dAnnonce),annonce:b.annonce,dVente:iso(b.dVente),vendu:b.vendu,
+      prix:b.prix})),
+    pieces:d.pieces.map(p=>Object.assign({},p._x||{},{pid:p.pid,bike:p.bike,date:iso(p.date),nom:p.nom,qte:p.qte,pu:p.pu,ajoute:p.ajoute})),
+    journal:d.journal});
+}
+function recompute(d){
+  const cost={};
+  d.pieces.forEach(p=>{ cost[p.bike]=(cost[p.bike]||0)+p.qte*p.pu; });
+  d.velos.forEach(b=>{
+    b.pieces=cost[b.id]||0;
+    b.cout=b.achat+b.pieces;
+    b.margeAttendue=b.annonce?b.annonce-b.cout:0;
+    b.margeReelle=b.vendu?b.vendu-b.cout:0;
+    b.ecart=(b.vendu&&b.annonce)?b.vendu-b.annonce:0;
+    b.jours=b.dAchat?Math.round(((b.dVente||today())-b.dAchat)/864e5):null;
+    b.joursVente=b.dAnnonce?Math.round(((b.dVente||today())-b.dAnnonce)/864e5):null;
+    const pr=(b.prix||[]).filter(x=>x.v>0);
+    b.prix1=pr.length?pr[0].v:b.annonce;
+    b.nbChg=Math.max(0,pr.length-1);
+  });
+}
+function nextId(){ DATA.seq++; return 'V'+String(DATA.seq).padStart(3,'0'); }
+function log(e){ DATA.journal.push(Object.assign({jid:uid('J'),ts:stamp(),src:'saisie'},e)); }
+
+function touch(){
+  CHANGES++; store.set('changes',CHANGES);
+  recompute(DATA); saveLocal(); renderAll(); updateBar();
+}
+function saveLocal(){ if(DATA) store.set('data',dry(DATA)); }
+function restoreLocal(){ const d=store.get('data'); return d&&d.velos?hydrate(d):null; }
+
+/* ==================== SYNCHRO ==================== */
+async function pullRemote(){
+  setSync('busy','lecture…');
+  const buf=await DBX.get(DB_PATH);
+  if(buf===null){ DATA=emptyData(); saveLocal(); return false; }
+  MIGRATED=false;
+  DATA=hydrate(JSON.parse(dec(buf)));
+  CHANGES=MIGRATED?1:0; store.set('changes',CHANGES); saveLocal();
+  showMig();
+  return true;
+}
+async function backupIfOld(){
+  if(store.get('backupV2')) return;
+  const buf=await DBX.get(DB_PATH);
+  if(buf){
+    let v=1; try{ v=num(JSON.parse(dec(buf)).version)||1; }catch(e){}
+    if(v<2){ await DBX.put(BACKUP_PATH,new Uint8Array(buf)); }
+  }
+  store.set('backupV2',true);
+}
+async function pushRemote(){
+  await backupIfOld();
+  const txt=JSON.stringify(dry(DATA),null,1);
+  await DBX.put(DB_PATH,enc(txt));
+  const back=await DBX.get(DB_PATH);
+  if(!(back&&dec(back)===txt)) throw new Error('Le fichier relu ne correspond pas à ce qui a été envoyé.');
+}
+async function send(){
+  if(!DATA) return;
+  $('#btnPush').disabled=true; setSync('busy','envoi…');
+  try{
+    await pushRemote();
+    CHANGES=0; store.set('changes',0); MIGRATED=false; showMig();
+    toast('Données enregistrées dans Dropbox');
+  }catch(e){ setSync('off','envoi impossible'); toast(e.message); }
+  $('#btnPush').disabled=false; updateBar();
+}
+async function pull(){
+  if(CHANGES&&!MIGRATED&&!confirm(CHANGES+' modification(s) ne sont pas envoyées.\n\nLes abandonner et recharger la version de Dropbox ?')) return;
+  try{ const found=await pullRemote();
+    renderAll(); updateBar();
+    if(!MIGRATED) toast(found?'Données à jour':'Aucune base sur Dropbox : elle sera créée au premier envoi.');
+  }catch(e){ setSync('off','erreur'); toast(e.message); }
+}
+function updateBar(){
+  $('#bar').hidden=!DBX.refresh;
+  $('#pushN').textContent=CHANGES?'('+CHANGES+')':'';
+  $('#btnPush').className='tbtn'+(CHANGES?' hot':'');
+  $('#btnPush').disabled=!CHANGES;
+  if(CHANGES) setSync('busy',CHANGES+' à envoyer');
+  else setSync(DATA?'on':'off',DATA?'à jour':'non connecté');
+}
+function showMig(){
+  const n=$('#migNote');
+  n.hidden=!MIGRATED;
+  if(MIGRATED) n.innerHTML='<b>Base convertie au nouveau format.</b> Toutes tes données sont reprises ; l’historique des prix et le journal des dépenses ont été amorcés à partir de l’existant. Touche <b>Envoyer</b> pour l’enregistrer : une copie de l’ancien fichier sera d’abord déposée dans Dropbox (<code>donnees_sauvegarde_avant_v2.json</code>).';
+}
+
+/* ==================== EXPORT EXCEL ==================== */
+function fmtCells(ws,cols,n,z,t){
+  cols.forEach(c=>{ for(let r=2;r<=n+1;r++){ const cell=ws[c+r]; if(cell&&cell.t===t) cell.z=z; } });
+}
+function buildWorkbook(){
+  const wb=XLSX.utils.book_new(), V=DATA.velos, P=DATA.pieces;
+  const hv=['Identifiant','Marque et modèle','Date d’achat','Prix d’achat (€)','Statut',
+    'Date de mise en vente','Premier prix annoncé (€)','Prix annoncé actuel (€)','Nb de changements de prix','Date de vente','Prix de vente réel (€)',
+    'Coût des pièces (€)','Coût total (€)','Marge attendue (€)','Marge réalisée (€)','Écart vendu vs annoncé (€)','Jours en stock','Jours en vente'];
+  const rv=V.map(b=>[b.id,b.nom,b.dAchat||'',b.achat||'',b.statut,b.dAnnonce||'',b.prix1||'',b.annonce||'',b.nbChg,
+    b.dVente||'',b.vendu||'',b.pieces,b.cout,b.margeAttendue,b.margeReelle,b.ecart,b.jours==null?'':b.jours,b.joursVente==null?'':b.joursVente]);
+  const wsV=XLSX.utils.aoa_to_sheet([hv].concat(rv),{cellDates:true});
+  wsV['!cols']=hv.map((h,i)=>({wch:i===1?26:Math.max(12,Math.min(20,h.length))}));
+  fmtCells(wsV,['D','G','H','K','L','M','N','O','P'],V.length,'#,##0 €','n');
+  fmtCells(wsV,['C','F','J'],V.length,'dd/mm/yyyy','d');
+  XLSX.utils.book_append_sheet(wb,wsV,'Vélos');
+
+  const hp=['Identifiant du vélo','Date d’achat','Pièce','Quantité','Prix unitaire (€)','Total (€)','Enregistrée le'];
+  const rp=P.map(p=>[p.bike,p.date||'',p.nom,p.qte,p.pu,p.qte*p.pu,(p.ajoute||'').replace('T',' ')]);
+  const wsP=XLSX.utils.aoa_to_sheet([hp].concat(rp),{cellDates:true});
+  wsP['!cols']=[{wch:17},{wch:13},{wch:30},{wch:10},{wch:15},{wch:13},{wch:17}];
+  fmtCells(wsP,['E','F'],P.length,'#,##0.00 €','n'); fmtCells(wsP,['B'],P.length,'dd/mm/yyyy','d');
+  XLSX.utils.book_append_sheet(wb,wsP,'Pièces');
+
+  const hh=['Identifiant','Marque et modèle','Date du prix','Prix annoncé (€)','Variation (€)','Origine'];
+  const rh=[]; V.forEach(b=>(b.prix||[]).forEach((p,i,a)=>rh.push([b.id,b.nom,fromIso(p.d)||'',p.v,i?p.v-a[i-1].v:'',p.src==='reprise'?'reprise de l’existant':'saisie'])));
+  const wsH=XLSX.utils.aoa_to_sheet([hh].concat(rh),{cellDates:true});
+  wsH['!cols']=[{wch:12},{wch:26},{wch:13},{wch:16},{wch:13},{wch:20}];
+  fmtCells(wsH,['D','E'],rh.length,'#,##0 €','n'); fmtCells(wsH,['C'],rh.length,'dd/mm/yyyy','d');
+  XLSX.utils.book_append_sheet(wb,wsH,'Historique prix');
+
+  const hj=['Enregistré le','Type','Vélo','Libellé','Quantité','Prix unitaire (€)','Montant (€)','Date de la dépense','Origine'];
+  const rj=DATA.journal.slice().sort((a,b)=>a.ts<b.ts?-1:1).map(j=>[(j.ts||'').replace('T',' '),TYPE_LBL[j.type]||j.type,
+    (j.bike||'')+(j.velo?' · '+j.velo:''),j.libelle||'',j.qte||'',j.pu||'',j.montant||0,fromIso(j.dDep)||'',j.src==='reprise'?'reprise de l’existant':'saisie']);
+  const wsJ=XLSX.utils.aoa_to_sheet([hj].concat(rj),{cellDates:true});
+  wsJ['!cols']=[{wch:17},{wch:18},{wch:28},{wch:30},{wch:9},{wch:14},{wch:13},{wch:16},{wch:20}];
+  fmtCells(wsJ,['F','G'],rj.length,'#,##0.00 €','n'); fmtCells(wsJ,['H'],rj.length,'dd/mm/yyyy','d');
+  XLSX.utils.book_append_sheet(wb,wsJ,'Journal dépenses');
+
+  const k=kpis(), a=vsStats(V.filter(b=>b.vendu>0)), d=today();
+  const rows=[['Tableau de bord',''],['Mois',MONTHS[d.getMonth()]+' '+d.getFullYear()],['',''],
+    ['Objectif de marge',DATA.objectif],['Marge encaissée ce mois',k.realise],['Reste à dégager',k.reste],
+    ['Vélos vendus ce mois',k.vendusMois.length],['Chiffre d’affaires du mois',k.ca],['',''],
+    ['Vélos en vente',k.enVente.length],['Valeur totale en vente (prix annoncés)',k.valeurVente],
+    ['Marge attendue si tout part',k.potentiel],['Argent immobilisé',k.immo],['',''],
+    ['Vendu vs annoncé (tout l’historique)',''],['Total dernier prix annoncé',a.annonce],['Total vendu',a.vendu],
+    ['Écart vendu − annoncé',a.vendu-a.annonce],['Écart en %',a.annonce?(a.vendu-a.annonce)/a.annonce:''],
+    ['Total premier prix annoncé',a.premier],['',''],
+    ['Marge moyenne par vélo vendu',k.margeMoy],['Délai moyen de revente (jours)',k.delai?Math.round(k.delai):''],['',''],
+    ['Export généré le',d.toLocaleString('fr-FR')]];
+  const wsD=XLSX.utils.aoa_to_sheet(rows);
+  wsD['!cols']=[{wch:42},{wch:20}];
+  ['B4','B5','B6','B8','B11','B12','B13','B16','B17','B18','B20','B22'].forEach(x=>{ if(wsD[x]&&wsD[x].t==='n') wsD[x].z='#,##0 €'; });
+  if(wsD.B19&&wsD.B19.t==='n') wsD.B19.z='0.0 %';
+  XLSX.utils.book_append_sheet(wb,wsD,'Tableau de bord');
+  return new Uint8Array(XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+}
+function download(bytes,name,type){
+  const url=URL.createObjectURL(new Blob([bytes],{type}));
+  const a=document.createElement('a'); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+async function exportToDropbox(){
+  if(!DATA){ toast('Aucune donnée.'); return; }
+  setSync('busy','export…');
+  try{ await DBX.put(XLS_PATH,buildWorkbook()); toast('Suivi_velos_electriques.xlsx mis à jour dans Dropbox'); }
+  catch(e){ toast(e.message); }
+  updateBar();
+}
+
+/* ==================== IMPORT D'UN ANCIEN EXCEL ==================== */
+const COLS_V={identifiant:'id',marqueetmodele:'nom',datedachat:'dAchat',prixdachat:'achat',statut:'statut',
+  datedemiseenvente:'dAnnonce',prixannonce:'annonce',prixannonceactuel:'annonce',datedevente:'dVente',prixdeventereel:'vendu'};
+const COLS_P={identifiantduvelo:'bike',datedachat:'date',piece:'nom',quantite:'qte',prixunitaire:'pu'};
+function importXlsx(buf){
+  const wb=XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true});
+  const pick=w=>{ const k=key(w);
+    const n=wb.SheetNames.filter(x=>key(x)===k)[0]||wb.SheetNames.filter(x=>key(x).indexOf(k.slice(0,4))===0)[0];
+    return n?XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:null,blankrows:false}):[]; };
+  const map=(raw,m)=>{
+    if(!raw.length) return [];
+    const head=(raw[0]||[]).map(key), idx={};
+    head.forEach((h,i)=>{ if(m[h]!==undefined) idx[m[h]]=i; });
+    return raw.slice(1).map(r=>{ const o={}; for(const k in idx) o[k]=r[idx[k]]; return o; });
+  };
+  const toD=v=>(v instanceof Date)?v:(typeof v==='number'?new Date(Date.UTC(1899,11,30+v)):fromIso(v));
+  const vs=map(pick('Vélos'),COLS_V).filter(b=>b.id!=null&&String(b.id).trim()!=='');
+  const ps=map(pick('Pièces'),COLS_P).filter(p=>p.bike!=null&&String(p.bike).trim()!=='');
+  if(!vs.length) throw new Error('Aucun vélo trouvé dans ce fichier.');
+  let add=0; const added=[];
+  vs.forEach(b=>{
+    const id=String(b.id).trim();
+    if(DATA.velos.some(x=>x.id===id)) return;
+    const nb={_x:{},id:id,nom:b.nom||'',statut:(b.statut||'Acheté').trim(),dAchat:toD(b.dAchat),achat:num(b.achat),
+      dAnnonce:toD(b.dAnnonce),annonce:num(b.annonce),dVente:toD(b.dVente),vendu:num(b.vendu),cree:stamp()};
+    nb.prix=nb.annonce>0?[{d:iso(nb.dAnnonce)||iso(today()),t:'',v:nb.annonce,src:'reprise'}]:[];
+    DATA.velos.push(nb); added.push(id);
+    if(nb.achat>0) log({type:'achat',bike:id,velo:nb.nom,libelle:'Achat du vélo (import Excel)',qte:1,pu:nb.achat,montant:nb.achat,dDep:iso(nb.dAchat)});
+    const n=id.match(/(\d+)/); if(n) DATA.seq=Math.max(DATA.seq,+n[1]);
+    add++;
+  });
+  ps.forEach(p=>{
+    const bike=String(p.bike).trim();
+    if(added.indexOf(bike)<0) return;
+    const np={_x:{},pid:uid('P'),bike:bike,date:toD(p.date),nom:p.nom||'Pièce',qte:num(p.qte)||1,pu:num(p.pu),ajoute:stamp()};
+    DATA.pieces.push(np);
+    const b=DATA.velos.find(x=>x.id===bike);
+    log({type:'piece',bike:bike,velo:b?b.nom:'',libelle:np.nom+' (import Excel)',qte:np.qte,pu:np.pu,montant:np.qte*np.pu,dDep:iso(np.date),pid:np.pid});
+  });
+  touch();
+  return add;
+}
+
+/* ==================== NAVIGATION ==================== */
+const TITLES={board:'Tableau de bord',list:'Mes vélos',analyses:'Analyses',depenses:'Journal des dépenses',setup:'Réglages'};
+function view(n,f){
+  if(f) FILTER=f;
+  CUR=n;
+  ['board','list','analyses','depenses','setup'].forEach(v=>$('#v-'+v).hidden=v!==n);
+  $$('.nav-i').forEach(b=>b.setAttribute('aria-current',String(b.dataset.view===n)));
+  $('#title').textContent=TITLES[n];
+  $('#crumbs').textContent='Atelier vélos › '+TITLES[n]+(n==='list'&&FILTER!=='tous'?' › '+FLBL[FILTER]:'');
+  $('#fab').hidden=!(n==='list'&&DATA);
+  $('#phAct').innerHTML=(n==='list'&&DATA)?'<button class="btn" id="addTop">+ Nouveau vélo</button>':'';
+  if($('#addTop')) $('#addTop').onclick=()=>openSheet(null);
+  store.set('view',n);
+  menu(false);
+  renderAll();
+  window.scrollTo(0,0);
+}
+function menu(open){
+  $('#side').classList.toggle('open',open);
+  $('#scrim').hidden=!open;
+  $('#burger').setAttribute('aria-expanded',String(open));
+}
+$('#burger').onclick=()=>menu(!$('#side').classList.contains('open'));
+$('#scrim').onclick=()=>menu(false);
+$$('.nav-i').forEach(b=>b.onclick=()=>view(b.dataset.view,b.dataset.view==='list'?'tous':null));
+$('#toAna').onclick=e=>{ e.preventDefault(); view('analyses'); };
+
+let toastT;
+function toast(m){
+  clearTimeout(toastT);
+  let el=$('.toast'); if(!el){ el=document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent=m; toastT=setTimeout(()=>el.remove(),3800);
+}
+function setSync(s,l){ $('#sync').innerHTML='<i class="dot '+s+'"></i><span>'+l+'</span>'; }
+const tagIdx=s=>({achete:1,enreparation:2,envente:3,vendu:4}[key(s)]||1);
+function renderAll(){ if(!DATA) return; renderNav();
+  if(CUR==='list') renderList(); if(CUR==='board') renderBoard();
+  if(CUR==='analyses') renderAnalyses(); if(CUR==='depenses') renderDepenses(); }
+
+/* ==================== VÉLOS ==================== */
+const FLBL={tous:'Tous',atelier:'À l’atelier',envente:'En vente',vendu:'Vendus'};
+function groups(){
+  const V=DATA.velos;
+  return {tous:V,atelier:V.filter(b=>['achete','enreparation'].indexOf(key(b.statut))>=0),
+    envente:V.filter(b=>key(b.statut)==='envente'),vendu:V.filter(b=>key(b.statut)==='vendu')};
+}
+function renderNav(){
+  const g=groups();
+  $('#navSub').innerHTML=Object.keys(FLBL).map(f=>'<button data-f="'+f+'" aria-current="'+(CUR==='list'&&FILTER===f)+'"><span>'+FLBL[f]+'</span><span class="cnt">'+g[f].length+'</span></button>').join('');
+  $$('#navSub button').forEach(b=>b.onclick=()=>view('list',b.dataset.f));
+}
+function renderList(){
+  const g=groups();
+  $('#filters').innerHTML=Object.keys(FLBL).map(f=>'<button data-f="'+f+'" aria-pressed="'+(FILTER===f)+'">'+FLBL[f]+' · '+g[f].length+'</button>').join('');
+  $$('#filters button').forEach(b=>b.onclick=()=>view('list',b.dataset.f));
+  const q=norm(QUERY);
+  const list=(g[FILTER]||g.tous).filter(b=>!q||norm(b.nom+' '+b.id).indexOf(q)>=0).slice().reverse();
+  $('#bikeList').innerHTML=list.length?list.map(card).join('')
+    :'<p class="empty" style="grid-column:1/-1">Aucun vélo ici.'+(DATA.velos.length?'':'<br>Touche « Nouveau vélo » pour commencer.')+'</p>';
+  bindCards('#bikeList');
+}
+$('#q').addEventListener('input',e=>{ QUERY=e.target.value; renderList(); });
+function bindCards(sel){ $$(sel+' .bike').forEach(el=>el.onclick=()=>openSheet(el.dataset.k)); }
+function card(b){
+  const sold=key(b.statut)==='vendu', known=sold||b.annonce>0;
+  const val=sold?b.margeReelle:b.margeAttendue;
+  let price='<span class="price none">Coût '+eur(b.cout)+'</span>';
+  if(sold) price='<span class="price sold num">'+eur(b.vendu)+'</span>';
+  else if(b.annonce>0) price='<span class="price num">'+eur(b.annonce)+'</span>';
+  let trend='';
+  if(b.nbChg>0&&b.annonce!==b.prix1){ const d=b.annonce-b.prix1;
+    trend='<div class="trend '+(d<0?'neg':'pos')+'">'+(d<0?'▼ ':'▲ ')+eurS(d)+' depuis '+eur(b.prix1)+'</div>'; }
+  if(sold&&b.annonce){ trend='<div class="trend '+(b.ecart<0?'neg':'pos')+'">'+eurS(b.ecart)+' vs annoncé ('+eur(b.annonce)+')</div>'; }
+  return '<button class="bike" data-k="'+esc(b.id)+'">'
+    +'<div class="top1"><span class="ref">RÉF. '+esc(b.id)+'</span><span class="badge b'+tagIdx(b.statut)+'">'+esc(b.statut||'—')+'</span></div>'
+    +'<div class="nom">'+esc(b.nom||'Sans nom')+'</div>'
+    +'<div class="meta">Acheté '+fr(b.dAchat)+' · '+eur(b.achat)+(b.pieces?' + '+eur(b.pieces)+' de pièces':'')+'</div>'
+    +trend
+    +'<div class="bot">'+price
+    +(known?'<div class="mg">'+(sold?'marge':'marge attendue')+'<b class="num '+(val>=0?'pos':'neg')+'">'+eur(val)+'</b></div>':'')
+    +'</div></button>';
+}
+
+/* ---------- fiche ---------- */
+function openSheet(id){
+  const b=id?DATA.velos.find(x=>x.id===id)
+            :{id:null,nom:'',statut:'Acheté',dAchat:today(),achat:0,dAnnonce:null,annonce:0,dVente:null,vendu:0,prix:[],__new:true};
+  if(!b) return;
+  DRAFT=Object.assign({},b,{prix:(b.prix||[]).slice()});
+  $('#sheet').hidden=false; $('#dScrim').hidden=false; document.body.style.overflow='hidden';
+  $('#partsBlock').hidden=!!b.__new; $('#sheetDelete').hidden=!!b.__new;
+  drawSheet(); $('#sheet').scrollTop=0;
+}
+function closeSheet(){ $('#sheet').hidden=true; $('#dScrim').hidden=true; document.body.style.overflow=''; DRAFT=null; }
+$('#sheetBack').onclick=closeSheet; $('#dScrim').onclick=closeSheet;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(!$('#sheet').hidden) closeSheet(); else menu(false);} });
+
+function field(id,label,type,val,unit){
+  const v=(val===0||val==null)?'':String(val);
+  return '<div class="field"><label for="'+id+'">'+label+'</label>'
+    +'<div class="inp"><input id="'+id+'" type="'+(type==='date'?'date':'text')+'"'
+    +(type==='money'?' inputmode="decimal"':'')+' value="'+esc(v)+'">'
+    +(unit?'<span class="unit">'+unit+'</span>':'')
+    +'<button class="clr" data-clr="'+id+'" aria-label="Effacer"'+(v?'':' hidden')+'>&times;</button></div></div>';
+}
+function drawSheet(){
+  const b=DRAFT;
+  $('#sheetTitle').textContent=b.nom||(b.__new?'Nouveau vélo':b.id);
+  $('#sheetForm').innerHTML=
+    '<div class="grp"><div class="gt">Vélo</div>'+field('fNom','Marque et modèle','text',b.nom)
+    +'<div class="field" style="margin:0"><label>Statut</label><div class="seg" id="fStatut">'
+    +STATUTS.map(s=>'<button type="button" data-s="'+s+'" aria-pressed="'+(s===b.statut)+'">'+s+'</button>').join('')
+    +'</div></div></div>'
+    +'<div class="grp"><div class="gt">Achat</div><div class="two">'+field('fDAchat','Date d’achat','date',iso(b.dAchat))+field('fAchat','Prix d’achat','money',b.achat,'€')+'</div></div>'
+    +'<div class="grp"><div class="gt">Mise en vente</div><div class="two">'+field('fDAnnonce','Mise en ligne le','date',iso(b.dAnnonce))+field('fAnnonce','Prix annoncé actuel','money',b.annonce,'€')+'</div>'
+    +'<div class="muted" style="margin-top:6px">Chaque nouveau prix enregistré est ajouté à l’historique ci-dessous, daté du jour.</div>'
+    +'<div class="hist" id="hist"></div></div>'
+    +'<div class="grp"><div class="gt">Vente</div><div class="two">'+field('fDVente','Date de vente','date',iso(b.dVente))+field('fVendu','Prix de vente réel','money',b.vendu,'€')+'</div></div>';
+  bind('fNom','nom',v=>v);
+  bind('fDAchat','dAchat',fromIso); bind('fDAnnonce','dAnnonce',fromIso); bind('fDVente','dVente',fromIso);
+  bind('fAchat','achat',parseNum); bind('fAnnonce','annonce',parseNum); bind('fVendu','vendu',parseNum);
+  $$('#fStatut button').forEach(el=>el.onclick=()=>{ DRAFT.statut=el.dataset.s; syncStatusUI(); });
+  $$('#sheetForm .clr').forEach(el=>el.onclick=()=>{
+    const i=$('#'+el.dataset.clr); i.value=''; i.dispatchEvent(new Event('input')); i.focus(); });
+  syncStatusUI(); drawRecap(); drawParts(); drawHist();
+}
+function spark(pts){
+  if(pts.length<2) return '';
+  const W=300,H=54,p=6, vs=pts.map(x=>x.v), mn=Math.min.apply(null,vs), mx=Math.max.apply(null,vs), rg=(mx-mn)||1;
+  const xy=pts.map((x,i)=>[p+i*(W-2*p)/(pts.length-1), H-p-(x.v-mn)/rg*(H-2*p)]);
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polyline fill="none" stroke="#2B59D9" stroke-width="2.5" vector-effect="non-scaling-stroke" points="'
+    +xy.map(a=>a.join(',')).join(' ')+'"/>'+xy.map(a=>'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="3.5" fill="#2B59D9"/>').join('')+'</svg>';
+}
+function drawHist(){
+  const h=DRAFT.prix||[], el=$('#hist');
+  if(!h.length){ el.innerHTML='<div class="muted">Pas encore de prix annoncé.</div>'; return; }
+  el.innerHTML='<div class="muted" style="font-weight:500">Historique des prix annoncés</div>'+spark(h)
+    +h.slice().reverse().map((p,ri)=>{ const i=h.length-1-ri, dv=i?p.v-h[i-1].v:0;
+      return '<div class="hl"><span class="dd">'+frIso(p.d)+'</span><span class="vv num">'+eur(p.v)
+        +(i?' <span class="'+(dv<0?'neg':'pos')+'" style="font-weight:500;font-size:12.5px">'+eurS(dv)+'</span>':'')
+        +(p.src==='reprise'?'<span class="pill">repris</span>':'')+'</span>'
+        +'<button class="x" data-i="'+i+'" aria-label="Retirer ce prix de l’historique">&times;</button></div>'; }).join('');
+  $$('#hist .x').forEach(x=>x.onclick=()=>{
+    if(!confirm('Retirer ce prix de l’historique ? (à utiliser pour corriger une erreur de saisie)')) return;
+    DRAFT.prix.splice(+x.dataset.i,1);
+    const last=DRAFT.prix[DRAFT.prix.length-1];
+    DRAFT.annonce=last?last.v:0; $('#fAnnonce').value=DRAFT.annonce||'';
+    drawHist(); drawRecap();
+  });
+}
+function bind(id,prop,conv){
+  const el=$('#'+id); if(!el) return;
+  el.addEventListener('input',()=>{
+    DRAFT[prop]=conv(el.value);
+    const c=el.parentNode.querySelector('.clr'); if(c) c.hidden=!el.value;
+    if(prop==='nom') $('#sheetTitle').textContent=el.value||'Nouveau vélo';
+    autoStatus(prop); drawRecap();
+  });
+}
+function autoStatus(prop){
+  if(prop==='vendu'&&DRAFT.vendu>0&&DRAFT.statut!=='Vendu'){
+    DRAFT.statut='Vendu'; if(!DRAFT.dVente){ DRAFT.dVente=today(); $('#fDVente').value=iso(DRAFT.dVente); }
+    syncStatusUI();
+  }else if(prop==='annonce'&&DRAFT.annonce>0&&['Acheté','En réparation'].indexOf(DRAFT.statut)>=0){
+    DRAFT.statut='En vente'; if(!DRAFT.dAnnonce){ DRAFT.dAnnonce=today(); $('#fDAnnonce').value=iso(DRAFT.dAnnonce); }
+    syncStatusUI();
+  }
+}
+function syncStatusUI(){
+  $$('#fStatut button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.s===DRAFT.statut)));
+  const t=$('#sheetTag'); t.textContent=DRAFT.statut||'—'; t.className='badge b'+tagIdx(DRAFT.statut);
+}
+function drawRecap(){
+  const b=DRAFT;
+  const parts=b.id?DATA.pieces.filter(p=>p.bike===b.id).reduce((a,p)=>a+p.qte*p.pu,0):0;
+  const cout=(b.achat||0)+parts, sold=b.vendu>0;
+  const marge=sold?b.vendu-cout:(b.annonce?b.annonce-cout:0);
+  $('#recap').innerHTML=
+    '<div><dt>Pièces</dt><dd class="num">'+eur(parts)+'</dd></div>'
+   +'<div><dt>Coût total</dt><dd class="num">'+eur(cout)+'</dd></div>'
+   +'<div><dt>'+(sold?'Marge réalisée':'Marge attendue')+'</dt><dd class="num '+(marge>=0?'pos':'neg')+'">'
+   +((b.annonce||sold)?eur(marge):'—')+'</dd></div>';
+}
+function drawParts(){
+  if(DRAFT.__new) return;
+  const list=DATA.pieces.filter(p=>p.bike===DRAFT.id);
+  $('#partsTot').textContent=list.length?eur(list.reduce((a,p)=>a+p.qte*p.pu,0)):'';
+  $('#partsList').innerHTML=list.length?list.map(p=>
+    '<div class="part"><div class="p1"><div>'+esc(p.nom||'Pièce')+'</div>'
+   +'<div class="d">'+p.qte+' × '+eur(p.pu)+' · achetée le '+fr(p.date)+(p.ajoute&&!/T00:00$/.test(p.ajoute)?' · saisie le '+esc(p.ajoute.slice(0,10).split('-').reverse().join('/')):'')+'</div></div>'
+   +'<div class="num" style="font-weight:700">'+eur(p.qte*p.pu)+'</div>'
+   +'<button class="del" data-p="'+p.pid+'" aria-label="Supprimer">&times;</button></div>').join('')
+   :'<div class="muted">Aucune pièce pour ce vélo.</div>';
+  $$('#partsList .del').forEach(el=>el.onclick=()=>{
+    const p=DATA.pieces.find(x=>x.pid===el.dataset.p); if(!p) return;
+    if(!confirm('Supprimer « '+(p.nom||'Pièce')+' » ? La suppression restera tracée dans le journal.')) return;
+    DATA.pieces=DATA.pieces.filter(x=>x.pid!==p.pid);
+    log({type:'piece-suppr',bike:p.bike,velo:DRAFT.nom,libelle:p.nom||'Pièce',qte:p.qte,pu:p.pu,montant:-(p.qte*p.pu),dDep:iso(p.date),pid:p.pid});
+    touch(); drawParts(); drawRecap(); toast('Pièce supprimée (tracée dans le journal)');
+  });
+}
+$('#pAdd').onclick=()=>{
+  const nom=$('#pName').value.trim();
+  const qte=Math.max(1,Math.round(parseNum($('#pQte').value)||1));
+  const pu=parseNum($('#pPu').value);
+  if(!nom&&!pu){ toast('Indique au moins un nom et un prix.'); return; }
+  const p={_x:{},pid:uid('P'),bike:DRAFT.id,date:today(),nom:nom||'Pièce',qte:qte,pu:pu,ajoute:stamp()};
+  DATA.pieces.push(p);
+  log({type:'piece',bike:p.bike,velo:DRAFT.nom,libelle:p.nom,qte:qte,pu:pu,montant:qte*pu,dDep:iso(p.date),pid:p.pid});
+  $('#pName').value=''; $('#pQte').value='1'; $('#pPu').value='';
+  touch(); drawParts(); drawRecap();
+};
+function applyPrice(b,newVal,draftHist){
+  // draftHist = historique édité dans la fiche (suppressions éventuelles)
+  b.prix=draftHist.slice();
+  const last=b.prix[b.prix.length-1];
+  if(newVal>0&&(!last||last.v!==newVal)){
+    const d=b.prix.length?iso(today()):(iso(b.dAnnonce)||iso(today()));
+    b.prix.push({d:d,t:stamp().slice(11),v:newVal,src:'saisie'});
+  }
+  b.annonce=newVal;
+}
+$('#sheetSave').onclick=()=>{
+  const b=DRAFT;
+  if(!b.nom&&!b.achat){ toast('Renseigne au moins un modèle ou un prix d’achat.'); return; }
+  const F=['nom','statut','dAchat','achat','dAnnonce','dVente','vendu'];
+  if(b.__new){
+    const nb={_x:{},id:nextId(),cree:stamp(),prix:[]};
+    F.forEach(f=>nb[f]=b[f]);
+    applyPrice(nb,b.annonce,[]);
+    DATA.velos.push(nb);
+    if(nb.achat>0) log({type:'achat',bike:nb.id,velo:nb.nom,libelle:'Achat du vélo',qte:1,pu:nb.achat,montant:nb.achat,dDep:iso(nb.dAchat)});
+    toast('Vélo ajouté');
+  }else{
+    const t=DATA.velos.find(x=>x.id===b.id);
+    const oldAchat=t.achat;
+    F.forEach(f=>t[f]=b[f]);
+    applyPrice(t,b.annonce,b.prix);
+    if(t.achat!==oldAchat){
+      log({type:oldAchat?'achat-corr':'achat',bike:t.id,velo:t.nom,
+        libelle:oldAchat?'Prix d’achat corrigé : '+eur(oldAchat)+' → '+eur(t.achat):'Achat du vélo',
+        qte:1,pu:t.achat,montant:t.achat-oldAchat,dDep:iso(t.dAchat)});
+    }
+    toast('Fiche mise à jour');
+  }
+  closeSheet(); touch();
+};
+$('#sheetDelete').onclick=()=>{
+  const b=DRAFT;
+  if(!confirm('Supprimer '+(b.nom||b.id)+' et ses pièces ?\nLe journal des dépenses gardera la trace de la suppression.')) return;
+  const t=DATA.velos.find(x=>x.id===b.id);
+  const tot=t.achat+DATA.pieces.filter(p=>p.bike===b.id).reduce((a,p)=>a+p.qte*p.pu,0);
+  log({type:'velo-suppr',bike:b.id,velo:t.nom,libelle:'Vélo supprimé avec ses pièces',qte:1,pu:tot,montant:-tot,dDep:''});
+  DATA.pieces=DATA.pieces.filter(p=>p.bike!==b.id);
+  DATA.velos=DATA.velos.filter(x=>x.id!==b.id);
+  closeSheet(); touch(); toast('Vélo supprimé');
+};
+$('#fab').onclick=()=>openSheet(null);
+
+/* ==================== TABLEAU DE BORD ==================== */
+function kpis(){
+  const now=today(), V=DATA.velos;
+  const same=d=>d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  const vendusMois=V.filter(b=>b.vendu>0&&same(b.dVente));
+  const enVente=V.filter(b=>key(b.statut)==='envente');
+  const realise=vendusMois.reduce((a,b)=>a+b.margeReelle,0);
+  const potentiel=enVente.reduce((a,b)=>a+b.margeAttendue,0);
+  const vendus=V.filter(b=>b.vendu>0);
+  const dl=vendus.filter(b=>b.jours!=null);
+  return {vendusMois,enVente,realise,potentiel,
+    valeurVente:enVente.reduce((a,b)=>a+b.annonce,0),
+    coutVente:enVente.reduce((a,b)=>a+b.cout,0),
+    ca:vendusMois.reduce((a,b)=>a+b.vendu,0),
+    reste:Math.max(0,DATA.objectif-realise),
+    margeMoy:vendus.length?vendus.reduce((a,b)=>a+b.margeReelle,0)/vendus.length:0,
+    immo:V.filter(b=>!b.vendu).reduce((a,b)=>a+b.cout,0),
+    delai:dl.length?dl.reduce((a,b)=>a+b.jours,0)/dl.length:0,
+    depMois:DATA.journal.filter(j=>ym(j.ts)===iso(now).slice(0,7)).reduce((a,j)=>a+num(j.montant),0)};
+}
+function vsStats(sold){
+  const s=sold.filter(b=>b.annonce>0);
+  const annonce=s.reduce((a,b)=>a+b.annonce,0), vendu=s.reduce((a,b)=>a+b.vendu,0), premier=s.reduce((a,b)=>a+(b.prix1||b.annonce),0);
+  return {n:s.length,annonce,vendu,premier,sousAnnonce:s.filter(b=>b.vendu<b.annonce).length,
+    auPrix:s.filter(b=>b.vendu>=b.annonce).length,
+    baisses:s.filter(b=>b.nbChg>0).length,
+    joursVente:(()=>{const x=s.filter(b=>b.joursVente!=null);return x.length?x.reduce((a,b)=>a+b.joursVente,0)/x.length:0;})()};
+}
+function kpiHTML(list){ return list.map(s=>'<div class="kpi'+(s[3]?' '+s[3]:'')+'"><dt>'+s[0]+'</dt><dd class="num">'+s[1]+'</dd>'+(s[2]?'<div class="sub2">'+s[2]+'</div>':'')+'</div>').join(''); }
+function renderBoard(){
+  const now=today(), k=kpis(), objectif=DATA.objectif;
+  $('#monthLabel').textContent=MONTHS[now.getMonth()]+' '+now.getFullYear();
+  $('#margeNow').textContent=eur(k.realise);
+  $('#margeNow').className='big num'+(k.realise<0?' neg':'');
+  $('#goalTxt').textContent=eur(objectif);
+  $('#pctTxt').textContent=Math.round(k.realise/objectif*100)+' %';
+  const d=Math.max(0,Math.min(100,k.realise/objectif*100)), o=Math.max(0,Math.min(100,(k.realise+Math.max(0,k.potentiel))/objectif*100));
+  $('#prog').innerHTML='<i class="o" style="width:'+o+'%"></i><i class="d" style="width:'+d+'%"></i>';
+  const fin=new Date(now.getFullYear(),now.getMonth()+1,0), j=Math.max(0,Math.round((fin-now)/864e5));
+  let v;
+  if(!DATA.velos.length) v='Aucun vélo enregistré. Ajoute le premier depuis le menu Vélos.';
+  else if(k.reste===0) v='Objectif atteint. Tout ce qui part maintenant est du bonus.';
+  else if(k.margeMoy>0){ const nb=Math.ceil(k.reste/k.margeMoy);
+    v='Il te manque <b>'+eur(k.reste)+'</b>, soit <b>'+nb+' vélo'+(nb>1?'s':'')+'</b> à ta marge moyenne de '+eur(k.margeMoy)+'. '
+     +(k.potentiel>=k.reste?'Ce qui est en vente suffit, au prix annoncé.':'Les annonces en ligne ne couvrent que '+eur(k.potentiel)+'.')
+     +' Reste '+j+' jour'+(j>1?'s':'')+'.';
+  } else v='Il te manque <b>'+eur(k.reste)+'</b>. La marge moyenne se calculera à la première vente.';
+  $('#verdict').innerHTML=v;
+
+  $('#kVente').textContent=eur(k.valeurVente);
+  $('#kVenteSub').textContent=k.enVente.length+' vélo'+(k.enVente.length>1?'s':'')+' en ligne, au prix annoncé';
+  $('#kVenteMarge').innerHTML='Coût engagé : <b>'+eur(k.coutVente)+'</b><br>Marge attendue si tout part : <b>'+eurS(k.potentiel)+'</b>';
+
+  $('#stats').innerHTML=kpiHTML([
+    ['Vendus ce mois',k.vendusMois.length],['Chiffre d’affaires',eur(k.ca)],
+    ['Dépenses enregistrées',eur(k.depMois),'ce mois, d’après le journal'],
+    ['Marge moyenne / vélo',k.margeMoy?eur(k.margeMoy):'—','tout l’historique'],
+    ['Argent immobilisé',eur(k.immo),'vélos non vendus'],
+    ['Délai moyen de revente',k.delai?Math.round(k.delai)+' j':'—','de l’achat à la vente']]);
+
+  const a=vsStats(DATA.velos.filter(b=>b.vendu>0)), am=vsStats(k.vendusMois);
+  $('#vsKpis').innerHTML=a.n?kpiHTML([
+    ['Écart global',pct(a.annonce?(a.vendu-a.annonce)/a.annonce:0),eurS(a.vendu-a.annonce)+' sur '+a.n+' vente'+(a.n>1?'s':''),''],
+    ['Total annoncé',eur(a.annonce),'dernier prix affiché'],
+    ['Total vendu',eur(a.vendu),a.sousAnnonce+' vendu'+(a.sousAnnonce>1?'s':'')+' sous le prix'],
+    ['Ce mois',am.n?pct((am.vendu-am.annonce)/am.annonce):'—',am.n?eurS(am.vendu-am.annonce)+' sur '+am.n+' vente'+(am.n>1?'s':''):'pas encore de vente']])
+    :'<p class="empty" style="grid-column:1/-1">Les écarts apparaîtront à la première vente d’un vélo qui avait un prix annoncé.</p>';
+
+  $('#openCount').textContent=k.enVente.length+' annonce'+(k.enVente.length>1?'s':'')+' · '+eur(k.valeurVente);
+  $('#openList').innerHTML=k.enVente.length?k.enVente.map(card).join(''):'<p class="empty" style="grid-column:1/-1">Aucune annonce en ligne.</p>';
+  $('#soldList').innerHTML=k.vendusMois.length?k.vendusMois.map(card).join(''):'<p class="empty" style="grid-column:1/-1">Pas encore de vente ce mois-ci.</p>';
+  bindCards('#openList'); bindCards('#soldList');
+}
+
+/* ==================== ANALYSES ==================== */
+function monthsOf(list){ const s={}; list.forEach(x=>{ if(x) s[x]=1; }); return Object.keys(s).sort().reverse(); }
+function renderAnalyses(){
+  const sel=$('#anaPer'), cur=sel.value||'all';
+  const ms=monthsOf(DATA.velos.filter(b=>b.vendu>0).map(b=>iso(b.dVente).slice(0,7)));
+  sel.innerHTML='<option value="all">Tout l’historique</option><option value="12">12 derniers mois</option>'+ms.map(m=>'<option value="'+m+'">'+ymLabel(m)+'</option>').join('');
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:'all';
+  const per=sel.value, now=today(), lim=new Date(now.getFullYear()-1,now.getMonth(),now.getDate());
+  const sold=DATA.velos.filter(b=>b.vendu>0).filter(b=>per==='all'?true:per==='12'?(b.dVente&&b.dVente>=lim):iso(b.dVente).slice(0,7)===per)
+    .sort((a,b)=>(b.dVente||0)-(a.dVente||0));
+  const a=vsStats(sold);
+  $('#anaKpis').innerHTML=a.n?kpiHTML([
+    ['Écart vendu vs annoncé',pct(a.annonce?(a.vendu-a.annonce)/a.annonce:0),eurS(a.vendu-a.annonce),'feat'],
+    ['Total dernier prix annoncé',eur(a.annonce),a.n+' vélo'+(a.n>1?'s':'')+' vendu'+(a.n>1?'s':'')],
+    ['Total vendu',eur(a.vendu),a.auPrix+' au prix ou plus · '+a.sousAnnonce+' en dessous'],
+    ['Premier prix annoncé',eur(a.premier),'écart total '+eurS(a.vendu-a.premier)+' ('+pct(a.premier?(a.vendu-a.premier)/a.premier:0)+')'],
+    ['Baisses de prix',a.baisses+' / '+a.n,'vélos dont le prix a changé avant la vente'],
+    ['Durée moyenne en ligne',a.joursVente?Math.round(a.joursVente)+' j':'—','de la mise en ligne à la vente']])
+    :'<p class="empty" style="grid-column:1/-1">Aucune vente avec prix annoncé sur cette période.</p>';
+
+  const s2=sold.filter(b=>b.annonce>0), mx=Math.max.apply(null,[1].concat(s2.map(b=>Math.max(b.annonce,b.vendu))));
+  $('#anaBars').innerHTML=s2.length?s2.map(b=>'<div class="bar-r"><div class="lbl" title="'+esc(b.nom)+'"><b>'+esc(b.id)+'</b> '+esc(b.nom)+'</div>'
+    +'<div class="bar-t"><i class="a" style="width:'+(b.annonce/mx*100)+'%"></i><i class="v'+(b.vendu<b.annonce?' lo':'')+'" style="width:'+(b.vendu/mx*100)+'%"></i></div>'
+    +'<div class="e num '+(b.ecart<0?'neg':'pos')+'">'+pct((b.vendu-b.annonce)/b.annonce)+'</div></div>').join('')
+    :'<p class="muted">Rien à afficher.</p>';
+
+  $('#anaTable').innerHTML=sold.length?'<thead><tr><th>Vélo</th><th>Vendu le</th><th class="r">1er prix</th><th class="r">Dernier prix</th><th class="r">Changements</th><th class="r">Vendu</th><th class="r">Écart</th><th class="r">Écart %</th><th class="r">Jours en ligne</th><th class="r">Marge</th></tr></thead><tbody>'
+    +sold.map(b=>'<tr class="click" data-k="'+esc(b.id)+'"><td><b>'+esc(b.id)+'</b> '+esc(b.nom)+'</td><td>'+fr(b.dVente)+'</td><td class="r num">'+(b.prix1?eur(b.prix1):'—')+'</td><td class="r num">'+(b.annonce?eur(b.annonce):'—')
+      +'</td><td class="r num">'+b.nbChg+'</td><td class="r num"><b>'+eur(b.vendu)+'</b></td><td class="r num '+(b.ecart<0?'neg':'pos')+'">'+(b.annonce?eurS(b.ecart):'—')
+      +'</td><td class="r num '+(b.ecart<0?'neg':'pos')+'">'+(b.annonce?pct(b.ecart/b.annonce):'—')+'</td><td class="r num">'+(b.joursVente!=null?b.joursVente:'—')+'</td><td class="r num '+(b.margeReelle<0?'neg':'pos')+'">'+eur(b.margeReelle)+'</td></tr>').join('')
+    +'</tbody>':'<tbody><tr><td class="muted">Aucune vente sur cette période.</td></tr></tbody>';
+  $$('#anaTable tr.click').forEach(r=>r.onclick=()=>openSheet(r.dataset.k));
+
+  // mois par mois
+  const byM={};
+  const M=k=>byM[k]||(byM[k]={n:0,ca:0,an:0,marge:0,dep:0});
+  DATA.velos.filter(b=>b.vendu>0&&b.dVente).forEach(b=>{ const m=M(iso(b.dVente).slice(0,7)); m.n++; m.ca+=b.vendu; m.marge+=b.margeReelle; if(b.annonce){ m.an+=b.annonce; m.caA=(m.caA||0)+b.vendu; } });
+  DATA.journal.forEach(j=>{ if(j.ts&&j.ts.length>=7&&j.ts[0]!=='T') M(ym(j.ts)).dep+=num(j.montant); });
+  const keys=Object.keys(byM).sort().reverse();
+  let T={n:0,ca:0,an:0,caA:0,marge:0,dep:0};
+  $('#anaMonths').innerHTML=keys.length?'<thead><tr><th>Mois</th><th class="r">Vendus</th><th class="r">Chiffre d’affaires</th><th class="r">Annoncé</th><th class="r">Écart vs annoncé</th><th class="r">Marge</th><th class="r">Dépenses saisies</th></tr></thead><tbody>'
+    +keys.map(k=>{ const m=byM[k]; ['n','ca','an','marge','dep'].forEach(f=>T[f]+=m[f]); T.caA+=m.caA||0; const e=(m.caA||0)-m.an;
+      return '<tr><td>'+ymLabel(k)+'</td><td class="r num">'+m.n+'</td><td class="r num">'+eur(m.ca)+'</td><td class="r num">'+(m.an?eur(m.an):'—')+'</td><td class="r num '+(e<0?'neg':'pos')+'">'+(m.an?eurS(e)+' ('+pct(e/m.an)+')':'—')
+      +'</td><td class="r num '+(m.marge<0?'neg':'')+'">'+eur(m.marge)+'</td><td class="r num">'+eur(m.dep)+'</td></tr>'; }).join('')
+    +'</tbody><tfoot><tr><td>Total</td><td class="r num">'+T.n+'</td><td class="r num">'+eur(T.ca)+'</td><td class="r num">'+eur(T.an)+'</td><td class="r num">'+(T.an?eurS(T.caA-T.an)+' ('+pct((T.caA-T.an)/T.an)+')':'—')+'</td><td class="r num">'+eur(T.marge)+'</td><td class="r num">'+eur(T.dep)+'</td></tr></tfoot>'
+    :'<tbody><tr><td class="muted">Pas encore de données.</td></tr></tbody>';
+
+  const open=groups().envente;
+  $('#anaOpen').innerHTML=open.length?'<thead><tr><th>Vélo</th><th>En ligne depuis</th><th class="r">1er prix</th><th class="r">Prix actuel</th><th class="r">Variation</th><th>Historique</th><th class="r">Marge attendue</th></tr></thead><tbody>'
+    +open.map(b=>{ const dv=b.annonce-b.prix1;
+      return '<tr class="click" data-k="'+esc(b.id)+'"><td><b>'+esc(b.id)+'</b> '+esc(b.nom)+'</td><td>'+(b.joursVente!=null?b.joursVente+' j':'—')+'</td><td class="r num">'+eur(b.prix1)+'</td><td class="r num"><b>'+eur(b.annonce)+'</b></td><td class="r num '+(dv<0?'neg':dv>0?'pos':'')+'">'+(dv?eurS(dv):'=')
+      +'</td><td>'+(b.prix||[]).map(p=>eur(p.v)).join(' → ')+'</td><td class="r num '+(b.margeAttendue<0?'neg':'pos')+'">'+eur(b.margeAttendue)+'</td></tr>'; }).join('')
+    +'</tbody><tfoot><tr><td>Total</td><td></td><td class="r num">'+eur(open.reduce((a,b)=>a+b.prix1,0))+'</td><td class="r num">'+eur(open.reduce((a,b)=>a+b.annonce,0))+'</td><td></td><td></td><td class="r num">'+eur(open.reduce((a,b)=>a+b.margeAttendue,0))+'</td></tr></tfoot>'
+    :'<tbody><tr><td class="muted">Aucune annonce en ligne.</td></tr></tbody>';
+  $$('#anaOpen tr.click').forEach(r=>r.onclick=()=>openSheet(r.dataset.k));
+}
+$('#anaPer').addEventListener('change',renderAnalyses);
+
+/* ==================== JOURNAL DES DÉPENSES ==================== */
+const TYPE_LBL={piece:'Pièce ajoutée','piece-suppr':'Pièce supprimée',achat:'Achat de vélo','achat-corr':'Correction prix d’achat','velo-suppr':'Vélo supprimé'};
+function renderDepenses(){
+  const selM=$('#depMonth'), cur=selM.value||'all', type=$('#depType').value;
+  const J=DATA.journal.slice().sort((a,b)=>a.ts<b.ts?1:-1);
+  const ms=monthsOf(J.map(j=>j.ts&&j.ts[0]!=='T'?ym(j.ts):''));
+  selM.innerHTML='<option value="all">Tous les mois</option>'+ms.map(m=>'<option value="'+m+'">'+ymLabel(m)+'</option>').join('');
+  selM.value=[...selM.options].some(o=>o.value===cur)?cur:'all';
+  const m=selM.value;
+  const list=J.filter(j=>(m==='all'||ym(j.ts)===m)&&(type==='all'||(type==='piece'?j.type.indexOf('piece')===0:j.type.indexOf('achat')===0||j.type==='velo-suppr')));
+  const tot=list.reduce((a,j)=>a+num(j.montant),0);
+  const pc=list.filter(j=>j.type.indexOf('piece')===0).reduce((a,j)=>a+num(j.montant),0);
+  const ac=list.filter(j=>j.type.indexOf('achat')===0).reduce((a,j)=>a+num(j.montant),0);
+  $('#depKpis').innerHTML=kpiHTML([['Total net',eur(tot),list.length+' ligne'+(list.length>1?'s':''),'feat'],
+    ['Pièces',eur(pc)],['Achats de vélos',eur(ac)]]);
+  if(!list.length){ $('#depLog').innerHTML='<p class="empty">Aucune dépense enregistrée ici.</p>'; return; }
+  const days={}; list.forEach(j=>{ const d=(j.ts||'').slice(0,10)||'—'; (days[d]=days[d]||[]).push(j); });
+  $('#depLog').innerHTML=Object.keys(days).map(d=>{
+    const dt=fromIso(d), items=days[d], s=items.reduce((a,j)=>a+num(j.montant),0);
+    const lbl=dt?dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'Date inconnue';
+    return '<div class="day"><h3><span>'+lbl+'</span><span class="num">'+eurS(s)+'</span></h3><div class="log">'
+      +items.map(j=>{ const neg=num(j.montant)<0;
+        const hh=j.src==='reprise'?'—':(j.ts||'').slice(11,16);
+        const det=[(j.bike||'')+(j.velo?' · '+j.velo:''),(j.qte>1?j.qte+' × '+eur(j.pu):''),
+          (j.dDep&&j.dDep!==d?'dépense du '+frIso(j.dDep):'')].filter(Boolean).join(' · ');
+        return '<div class="li'+(j.type==='piece-suppr'||j.type==='velo-suppr'?' strike':'')+'"><span class="h">'+hh+'</span>'
+          +'<div class="w"><b>'+esc(j.libelle||'')+'</b><span class="pill">'+(TYPE_LBL[j.type]||j.type)+'</span>'+(j.src==='reprise'?'<span class="pill">repris de l’existant</span>':'')
+          +'<div class="s">'+esc(det)+'</div></div>'
+          +'<span class="m num '+(neg?'pos':'')+'">'+eurS(num(j.montant))+'</span></div>'; }).join('')
+      +'</div></div>';
+  }).join('');
+}
+$('#depMonth').addEventListener('change',renderDepenses);
+$('#depType').addEventListener('change',renderDepenses);
+
+/* ==================== TEST DE CONNEXION ==================== */
+const DIAG=[];
+function renderDiag(){
+  $('#diagOut').innerHTML=DIAG.map(d=>'<li style="margin-bottom:6px"><b style="color:'
+    +(d.ok?'var(--pos)':'var(--neg)')+'">'+(d.ok?'OK':'ÉCHEC')+'</b> — '+esc(d.t)
+    +'<br><span class="muted">'+esc(d.d)+'</span></li>').join('');
+}
+function step(t,ok,d){ DIAG.push({t,ok,d}); renderDiag(); }
+async function selfTest(){
+  DIAG.length=0; renderDiag(); $('#btnDiag').disabled=true;
+  const P='/test_connexion.json', txt=JSON.stringify({essai:'accents éèà',quand:Date.now()});
+  try{
+    const w=await DBX.put(P,enc(txt));
+    step('1. Écriture d’un fichier d’essai',true,(w.size!=null?w.size:'?')+' octets stockés');
+    const b=await DBX.get(P); const back=b?dec(b):'';
+    step('2. Relecture',back===txt,back===txt?'contenu identique':'contenu différent de l’envoi');
+    const j=await DBX.get(DB_PATH);
+    step('3. Lecture de la base',true,j?JSON.parse(dec(j)).velos.length+' vélos dans donnees.json':'aucune base pour l’instant');
+    step('Conclusion',DIAG.every(d=>d.ok),DIAG.every(d=>d.ok)?'La liaison Dropbox fonctionne.':'Voir la ligne en rouge.');
+  }catch(e){ step('Interruption',false,e.message); }
+  $('#btnDiag').disabled=false;
+}
+
+/* ==================== RÉGLAGES ==================== */
+$('#btnAuth').onclick=async()=>{
+  const k=$('#appkey').value.trim();
+  if(!k){ toast('Colle d’abord ton App key.'); return; }
+  store.set('appKey',k);
+  try{ await DBX.begin(); $('#setupCode').hidden=false; $('#authcode').focus(); }
+  catch(e){ toast('Impossible d’ouvrir Dropbox.'); }
+};
+$('#btnCancelCode').onclick=()=>$('#setupCode').hidden=true;
+$('#btnCode').onclick=async()=>{
+  try{ await DBX.finish($('#authcode').value); $('#setupCode').hidden=true; showSetup();
+    await pull(); view('board'); }
+  catch(e){ toast(e.message); }
+};
+$('#btnPull').onclick=()=>pull();
+$('#btnReload').onclick=()=>pull();
+$('#btnPush').onclick=()=>send();
+$('#sync').onclick=()=>{ if(CHANGES) toast(CHANGES+' modification(s) en attente. Touche Envoyer.'); };
+$('#btnLogout').onclick=()=>{
+  if(CHANGES&&!confirm('Des modifications ne sont pas envoyées. Se déconnecter quand même ?')) return;
+  store.del('refresh'); store.del('data'); store.del('changes');
+  CHANGES=0; DBX.token=null; DATA=null; showSetup(); view('setup'); toast('Dropbox déconnecté.');
+};
+$('#btnXlsDbx').onclick=()=>exportToDropbox();
+$('#btnXlsDl').onclick=()=>{ if(!DATA){ toast('Aucune donnée.'); return; }
+  download(buildWorkbook(),'Suivi_velos_'+iso(today())+'.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); };
+$('#btnJsonDl').onclick=()=>{ if(!DATA){ toast('Aucune donnée.'); return; }
+  download(enc(JSON.stringify(dry(DATA),null,1)),'donnees_'+iso(today())+'.json','application/json'); };
+$('#btnDiag').onclick=()=>selfTest();
+$('#btnImport').onclick=()=>$('#importFile').click();
+$('#importFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(!DATA) DATA=emptyData();
+  const r=new FileReader();
+  r.onload=ev=>{ try{ const n=importXlsx(ev.target.result); toast(n+' vélo(s) importé(s). Pense à envoyer.'); view('list','tous'); }
+    catch(err){ toast(err.message); } };
+  r.readAsArrayBuffer(f); e.target.value='';
+});
+$('#fGoal').addEventListener('input',()=>{
+  const v=parseNum($('#fGoal').value);
+  if(DATA&&v>0){ DATA.objectif=v; touch(); }
+});
+function showSetup(){
+  const on=!!DBX.refresh;
+  $('#setupIntro').hidden=on; $('#setupOk').hidden=!on;
+  if(on&&DATA) $('#fGoal').value=DATA.objectif;
+  if(!on) $('#appkey').value=DBX.appKey||'';
+}
+
+/* ==================== DÉMARRAGE ==================== */
+CHANGES=num(store.get('changes'))||0;
+(function start(){
+  const local=restoreLocal();
+  if(local){ DATA=local; if(!CHANGES) MIGRATED=false; showMig(); }   // sans modif en attente : la version Dropbox est rechargée (et convertie) juste après
+  showSetup();
+  if(!DBX.refresh){ view('setup'); updateBar(); return; }
+  view(store.get('view')||'board');
+  if(CHANGES>0){ updateBar(); if(!MIGRATED) toast(CHANGES+' modification(s) en attente d’envoi'); }
+  else pull().then(()=>{ showSetup(); renderAll(); });
+})();
+</script>
+</body>
+</html>
